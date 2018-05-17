@@ -1,0 +1,5 @@
+cocoa.cmi :
+cocoa.cmo : cocoa.cmi
+cocoa.cmx : cocoa.cmi
+cocoa_test.cmo : cocoa.cmi
+cocoa_test.cmx : cocoa.cmx

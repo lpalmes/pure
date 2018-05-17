@@ -1,0 +1,37 @@
+{
+  "name": "rereact-native",
+  "bs-dependencies": ["bs-webapi"],
+  "static-libraries": ["src_native/cocoa_bindings/lib/cocoa_stubs.o"],
+  "c-linker-flags": ["'-framework Cocoa'"],
+  "sources": [
+    { "dir": "src", "subdirs": true },
+    {
+      "backend": "js",
+      "dir": "src_dom",
+      "subdirs": true
+    },
+    {
+      "backend": ["native", "bytecode"],
+      "dir": "src_native",
+      "subdirs": true
+    }
+  ],
+  "entries": [
+    {
+      "backend": "bytecode",
+      "main-module": "IndexNative"
+    },
+    {
+      "backend": "native",
+      "main-module": "IndexNative"
+    },
+    {
+      "backend": "js",
+      "main-module": "IndexDom"
+    }
+  ],
+  "warnings": {
+    "number": "-31"
+  },
+  "refmt": 3
+}

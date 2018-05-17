@@ -1,0 +1,32 @@
+module Make = (Config: ReconcilerSpec.HostConfig) => {
+  type fiberTag =
+    | Host
+    | Component
+    | HostRoot;
+  type effectTag =
+    | Placement
+    | Deletion
+    | Update;
+  type fiber('state) = {
+    tag: fiberTag,
+    fiberType: Rereact.reactElement,
+    parent: option(opaqueFiber),
+    mutable state: option('state),
+    mutable child: option(opaqueFiber),
+    mutable sibling: option(opaqueFiber),
+    alternate: option(opaqueFiber),
+    mutable effectTag: option(effectTag),
+    mutable stateNode: option(Config.hostNode),
+    mutable effects: list(opaqueFiber)
+  }
+  and opaqueFiber =
+    | Fiber(fiber('state)): opaqueFiber;
+  type fiberUpdateHost = {
+    node: Config.hostNode,
+    children: Rereact.reactElement
+  };
+  type fiberUpdateComponent = {fiber: opaqueFiber};
+  type fiberUpdate =
+    | HostRoot(fiberUpdateHost)
+    | Component(fiberUpdateComponent);
+};
