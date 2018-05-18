@@ -4,7 +4,7 @@ This is an experiment on some ideas i have, i will write some more in the future
 
 ## Why this exists?
 
-Electron is a successful case of cross platform code between three platforms: MacOS, Linux, Windows and the Web. But such benefits bring costs as high resource usage and most of the time core rewrites in c++ (or another language) to avoid those issues. I belive that React Native has solved this problem by using the platform (iOS and Android for now), and the desktop environments could benefit from this as well. Hence this project, which is an experiment of doing a cross platform ui library to satisfy electron use cases for an lighter alternative using native platform.
+Electron is a successful case of cross platform code between three platforms: MacOS, Linux, Windows and the Web. But such benefits bring costs as high resource usage and most of the time core rewrites in c++ (or another language) to avoid those issues. I believe that React Native has solved this problem by using the platform (iOS and Android for now), and the desktop environments could benefit from this as well. Hence this project, which is an experiment of doing a cross platform ui library to satisfy electron use cases for an lighter alternative using native platform.
 
 ## Project structure
 
@@ -22,7 +22,7 @@ npm run build
 npm run run-app
 ```
 
-If you want to help you are more than welcome to do so. This is an experiment that i hope it turns into a viable route, i belive we deserve a better alternative for the desktop.
+If you want to help you are more than welcome to do so. This is an experiment that i hope it turns into a viable route, i believe we deserve a better alternative for the desktop.
 
 ## Credit and inspirations
 
