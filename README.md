@@ -1,4 +1,8 @@
-# Rereact Native
+# Pure
+
+### Pure stands for Pure Reason
+
+The idea of this project is to have cross-platform Reason code for web, desktop, mobile, that's why Pure was named as i wanted to write pure reason code (thanks to [cherta](https://twitter.com/iamcherta) for the name).
 
 This is an experiment on some ideas i have, i will write some more in the future, but for now this can be seen as a cross platform ui library using each native platform and always providing a great developer experience like instant and consistent hot code reloading.
 

@@ -1,5 +1,5 @@
 {
-  "name": "rereact-native",
+  "name": "pure",
   "scripts": {
     "start": "bsb -w",
     "run-app": "./lib/bs/bytecode/indexnative.byte",

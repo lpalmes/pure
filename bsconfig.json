@@ -1,5 +1,5 @@
 {
-  "name": "rereact-native",
+  "name": "pure",
   "bs-dependencies": ["bs-webapi"],
   "static-libraries": ["src_native/cocoa_bindings/lib/cocoa_stubs.o"],
   "c-linker-flags": ["'-framework Cocoa'"],
