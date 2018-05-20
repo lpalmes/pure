@@ -14,7 +14,7 @@
   "devDependencies": {},
   "dependencies": {
     "bs-platform": "bsansouci/bsb-native#2.1.1",
-    "bs-webapi": "^0.8.2",
+    "bs-webapi": "git+https://github.com/lpalmes/bs-webapi-incubator#patch-1",
     "parcel-bundler": "1.7.1"
   }
 }
