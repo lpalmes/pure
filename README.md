@@ -20,10 +20,24 @@ The structure is similar to react:
 
 ## Take it for a spin
 
+### Native
+
 ```
 npm install
-npm run build
+npm run build:bytecode
 npm run run-app
+```
+
+### Browser
+
+```npm install
+npm run build:js
+npm run start:js
+
+## and in separate terminal window..
+npm run bundle
+
+## browse to localhost:1234
 ```
 
 If you want to help you are more than welcome to do so. This is an experiment that i hope it turns into a viable route, i believe we deserve a better alternative for the desktop.
