@@ -14,9 +14,9 @@ Electron is a successful case of cross platform code between three platforms: Ma
 
 The structure is similar to react:
 
-* **src:** this is cross platform code between native and js. Includes the reconciler and layout (flex)
-* **src_dom:** the dom/web render using the reconciler above
-* **src_native:** the native render using the same reconciler. This has a MacOS render for now, but a Linux and Windows is in the works.
+- **pure:** this is cross platform code between native and js. Includes the reconciler and layout (flex)
+- **pure-dom:** the dom/web render using the reconciler above
+- **pure-macoos:** the native render using the same reconciler. This has a MacOS render for now, but a Linux and Windows is in the works.
 
 ## Take it for a spin
 
@@ -24,7 +24,6 @@ The structure is similar to react:
 
 ```
 npm install
-npm run build:bytecode
 npm run run-app
 ```
 
@@ -44,7 +43,7 @@ If you want to help you are more than welcome to do so. This is an experiment th
 
 ## Credit and inspirations
 
-* [bsb native](https://github.com/bsansouci/bsb-native)
-* [react native web](https://github.com/necolas/react-native-web)
-* [reasongl](https://github.com/bsansouci/reasongl) (for the cross platform code)
-* [didact](https://github.com/hexacta/didact) by [pomber](https://twitter.com/pomber)
+- [bsb native](https://github.com/bsansouci/bsb-native)
+- [react native web](https://github.com/necolas/react-native-web)
+- [reasongl](https://github.com/bsansouci/reasongl) (for the cross platform code)
+- [didact](https://github.com/hexacta/didact) by [pomber](https://twitter.com/pomber)

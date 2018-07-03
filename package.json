@@ -2,7 +2,7 @@
   "name": "pure",
   "scripts": {
     "start": "bsb -w",
-    "run-app": "./lib/bs/bytecode/indexnative.byte",
+    "run-app": "bsb -make-world -backend bytecode; ./lib/bs/bytecode/mainmacos.byte",
     "start:js": "bsb -backend js -w",
     "start:native": "bsb -backend native -w",
     "build:js": "bsb -make-world -backend js",
