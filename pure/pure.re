@@ -12,7 +12,7 @@ type props = {
   onClick: option(unit => unit),
   onChangeText: option(string => unit),
   layout: LayoutTypes.cssStyle,
-  style
+  style,
 };
 
 type primitive =
@@ -35,41 +35,45 @@ module Callback = {
   };
 };
 
-type reduce('payload, 'action) = ('payload => 'action) => Callback.t('payload);
+type reduce('payload, 'action) =
+  ('payload => 'action) => Callback.t('payload);
 
 type update('state, 'action) =
   | NoUpdate
   | Update('state)
 and self('state, 'action) = {
   state: 'state,
-  send: 'action => unit
+  send: 'action => unit,
 };
 
 type element =
   | String(string)
   | Component(component('state, 'action)): element
   | Nil
-and reactElement =
+and pureElement =
   | Flat(element)
-  | Nested(primitive, props, list(reactElement))
+  | Nested(primitive, props, list(pureElement))
 and componentSpec('state, 'initialState, 'action) = {
   debugName: string,
-  render: self('state, 'action) => reactElement,
+  render: self('state, 'action) => pureElement,
   initialState: unit => 'initialState,
   didMount: self('state, 'action) => unit,
-  reducer: ('action, 'state) => update('state, 'action)
+  reducer: ('action, 'state) => update('state, 'action),
 }
 and component('state, 'action) = componentSpec('state, 'state, 'action);
 
 let basicComponent = debugName : componentSpec(_, _, _) => {
   debugName,
-  render: _self => assert false,
+  render: _self => assert(false),
   initialState: () => (),
   didMount: _self => (),
-  reducer: (_action, _state) => NoUpdate
+  reducer: (_action, _state) => NoUpdate,
 };
 
-let statelessComponent = debugName => {...basicComponent(debugName), initialState: () => ()};
+let statelessComponent = debugName => {
+  ...basicComponent(debugName),
+  initialState: () => (),
+};
 
 let statefulComponent = debugName => basicComponent(debugName);
 

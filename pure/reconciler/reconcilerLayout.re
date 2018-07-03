@@ -1,6 +1,6 @@
 module Make = (Config: ReconcilerSpec.HostConfig) => {
   module FiberTypes = FiberTypes.Make(Config);
-  module Debug = RereactDebug.Make(Config);
+  module Debug = PureDebug.Make(Config);
   open FiberTypes;
   module Node = {
     type context = FiberTypes.opaqueFiber;
@@ -16,7 +16,7 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
         alternate: None,
         effectTag: None,
         effects: [],
-        stateNode: None
+        stateNode: None,
       });
   };
   module Encoding = FixedEncoding;
@@ -30,12 +30,14 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
           : Layout.LayoutSupport.NodeType.node => {
     let Fiber(f) = fiber;
     let children =
-      switch f.child {
-      | Some(child) => createLayoutNodeChildren(child) |> Array.map(createLayoutNodeFromFiber)
+      switch (f.child) {
+      | Some(child) =>
+        createLayoutNodeChildren(child)
+        |> Array.map(createLayoutNodeFromFiber)
       | None => [||]
       };
     let style =
-      switch f.fiberType {
+      switch (f.fiberType) {
       | Nested(_, props, _) => props.layout
       | _ => LayoutSupport.defaultStyle
       };
@@ -47,7 +49,7 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
     let node = ref(n);
     let break = ref(false);
     while (break^ == false) {
-      switch node.contents.sibling {
+      switch (node.contents.sibling) {
       | Some(Fiber(sibl) as siblingNode) =>
         children := Array.append(children^, [|siblingNode|]);
         node := Obj.magic(sibl);
@@ -58,7 +60,7 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
   };
   let rec applyLayout = (node: LS.NodeType.node) => {
     let Fiber(fiber) = node.context;
-    switch fiber.stateNode {
+    switch (fiber.stateNode) {
     | Some(stateNode) =>
       let layout: ReconcilerSpec.cssLayout = {
         left: float_of_int(node.layout.left),
@@ -66,7 +68,7 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
         right: float_of_int(node.layout.right),
         bottom: float_of_int(node.layout.bottom),
         width: float_of_int(node.layout.width),
-        height: float_of_int(node.layout.height)
+        height: float_of_int(node.layout.height),
       };
       Config.applyLayout(stateNode, layout);
     | _ => ()

@@ -1,1 +1,0 @@
-RereactDom.render(<Sample.ReducerComponent />, "container");

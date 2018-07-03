@@ -1,10 +1,10 @@
-open Rereact;
+open Pure;
 
 let defaultLayout = LayoutSupport.defaultStyle;
 
 let defaultStyle: style = {backgroundColor: None};
 
-let defaultProps: Rereact.props = {
+let defaultProps: Pure.props = {
   id: None,
   value: None,
   title: None,
@@ -14,7 +14,7 @@ let defaultProps: Rereact.props = {
   onClick: None,
   onChangeText: None,
   layout: defaultLayout,
-  style: defaultStyle
+  style: defaultStyle,
 };
 
 let createNativeElement =
@@ -26,10 +26,14 @@ let createNativeElement =
       ~onClick: option(unit => unit)=?,
       ~layout=defaultLayout,
       ~style=defaultStyle,
-      ~children: list(reactElement),
-      _: unit
+      ~children: list(pureElement),
+      _: unit,
     ) =>
-  Nested(nativeElement, {...defaultProps, id, value, onClick, layout, style, title}, children);
+  Nested(
+    nativeElement,
+    {...defaultProps, id, value, onClick, layout, style, title},
+    children,
+  );
 
 let view = createNativeElement(View);
 

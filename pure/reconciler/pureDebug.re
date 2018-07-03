@@ -1,4 +1,4 @@
-open Rereact;
+open Pure;
 
 module Make = (Config: ReconcilerSpec.HostConfig) => {
   module Types = FiberTypes.Make(Config);
@@ -8,9 +8,9 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
       print_string("  ");
     };
   let getFiberTag = fiber =>
-    switch fiber.tag {
+    switch (fiber.tag) {
     | HostRoot =>
-      switch fiber.alternate {
+      switch (fiber.alternate) {
       | Some(_) => print_endline("Has alternatev")
       | None => print_endline("No alternate")
       };
@@ -19,22 +19,22 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
     | Component => "Component"
     };
   let getFiberEffect = fiber =>
-    switch fiber.effectTag {
+    switch (fiber.effectTag) {
     | Some(Placement) => "Placement"
     | Some(Update) => "Update"
     | Some(Deletion) => "Deletion"
     | None => "No effect"
     };
   let getFiberElement = element =>
-    switch element {
+    switch (element) {
     | Nested(t, _, _) =>
-      switch t {
+      switch (t) {
       | View => "View"
       | Button => "Button"
       | Text => "Text"
       }
     | Flat(t) =>
-      switch t {
+      switch (t) {
       | Component({debugName}) => debugName
       | String(text) => "Text(" ++ text ++ ")"
       | Nil => "nil"
@@ -42,24 +42,28 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
     };
   let printEffects = effects =>
     List.iter(
-      f => getFiberEffect(f) ++ " " ++ getFiberElement(f.fiberType) |> print_endline,
-      effects
+      f =>
+        getFiberEffect(f)
+        ++ " "
+        ++ getFiberElement(f.fiberType)
+        |> print_endline,
+      effects,
     );
   let rec printFiber = (Fiber(fiber), spaces: int) : unit => {
     let fiberTag = getFiberTag(fiber);
     let elementType = getFiberElement(fiber.fiberType);
     indent(spaces);
     let host =
-      switch fiber.stateNode {
+      switch (fiber.stateNode) {
       | Some(_) => "Has node"
       | None => "None"
       };
     print_endline(fiberTag ++ " (" ++ elementType ++ ") StateNode: " ++ host);
-    switch fiber.child {
+    switch (fiber.child) {
     | Some(f) => printFiber(f, spaces + 1)
     | None => ()
     };
-    switch fiber.sibling {
+    switch (fiber.sibling) {
     | Some(f) => printFiber(f, spaces)
     | None => ()
     };

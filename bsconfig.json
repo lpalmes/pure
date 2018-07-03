@@ -1,33 +1,51 @@
 {
   "name": "pure",
+  "ocamlfind-dependencies": ["lablgtk2"],
   "bs-dependencies": ["bs-webapi"],
-  "static-libraries": ["src_native/cocoa_bindings/lib/cocoa_stubs.o"],
+  "static-libraries": ["pure-macos/cocoa_bindings/lib/cocoa_stubs.o"],
   "c-linker-flags": ["'-framework Cocoa'"],
   "sources": [
-    { "dir": "src", "subdirs": true },
+    { "dir": "pure", "subdirs": true },
     {
       "backend": "js",
-      "dir": "src_dom",
+      "dir": "pure-dom",
       "subdirs": true
     },
     {
       "backend": ["native", "bytecode"],
-      "dir": "src_native",
+      "dir": "pure-macos",
+      "subdirs": true
+    },
+    {
+      "backend": ["native", "bytecode"],
+      "dir": "pure-gtk",
+      "subdirs": true
+    },
+    {
+      "dir": "sample",
       "subdirs": true
     }
   ],
   "entries": [
     {
       "backend": "bytecode",
-      "main-module": "IndexNative"
+      "main-module": "MainMacOS"
     },
     {
       "backend": "native",
-      "main-module": "IndexNative"
+      "main-module": "MainMacOS"
+    },
+    {
+      "backend": "bytecode",
+      "main-module": "MainGTK"
+    },
+    {
+      "backend": "native",
+      "main-module": "MainGTK"
     },
     {
       "backend": "js",
-      "main-module": "IndexDom"
+      "main-module": "MainDom"
     }
   ],
   "warnings": {

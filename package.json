@@ -9,12 +9,10 @@
     "build:bytecode": "bsb -make-world -backend bytecode",
     "build:native": "bsb -make-world -backend native",
     "clean": "bsb -clean-world",
-    "bundle": "parcel ./src_dom/index.html"
+    "bundle": "parcel ./pure-dom/index.html"
   },
-  "devDependencies": {},
   "dependencies": {
-    "bs-platform": "bsansouci/bsb-native#2.1.1",
-    "bs-webapi": "git+https://github.com/lpalmes/bs-webapi-incubator#patch-1",
-    "parcel-bundler": "1.7.1"
+    "bs-platform": "bsansouci/bsb-native#3.2.0",
+    "bs-webapi": "git+https://github.com/lpalmes/bs-webapi-incubator#patch-1"
   }
 }

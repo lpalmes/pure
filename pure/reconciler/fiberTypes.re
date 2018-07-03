@@ -9,7 +9,7 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
     | Update;
   type fiber('state) = {
     tag: fiberTag,
-    fiberType: Rereact.reactElement,
+    fiberType: Pure.pureElement,
     parent: option(opaqueFiber),
     mutable state: option('state),
     mutable child: option(opaqueFiber),
@@ -17,13 +17,13 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
     alternate: option(opaqueFiber),
     mutable effectTag: option(effectTag),
     mutable stateNode: option(Config.hostNode),
-    mutable effects: list(opaqueFiber)
+    mutable effects: list(opaqueFiber),
   }
   and opaqueFiber =
     | Fiber(fiber('state)): opaqueFiber;
   type fiberUpdateHost = {
     node: Config.hostNode,
-    children: Rereact.reactElement
+    children: Pure.pureElement,
   };
   type fiberUpdateComponent = {fiber: opaqueFiber};
   type fiberUpdate =

@@ -1,4 +1,4 @@
-open Rereact;
+open Pure;
 
 open Cocoa;
 
@@ -8,30 +8,34 @@ type hostNative =
 
 module Host: ReconcilerSpec.HostConfig = {
   type hostNode = hostNative;
-  let createInstance = (Nested(primitive, props, _)) =>
-    switch primitive {
-    | View =>
-      let view = NSView.make((0., 0., 0., 0.));
-      switch props.style.backgroundColor {
-      | Some((r, g, b, a)) => NSView.setBackgroundColor(view, r, g, b, a)
-      | None => ()
-      };
-      View(view);
-    | Text => View(NSView.make((0., 0., 0., 0.)))
-    | Button =>
-      let button = NSButton.make((0., 0., 100., 100.));
-      switch props.title {
-      | Some(v) => NSButton.setTitle(button, v)
-      | None => ()
-      };
-      switch props.onClick {
-      | Some(c) => NSButton.setCallback(button, c)
-      | None => ()
-      };
-      Button(button);
+  let createInstance = element =>
+    switch (element) {
+    | Nested(primitive, props, _) =>
+      switch (primitive) {
+      | View =>
+        let view = NSView.make((0., 0., 0., 0.));
+        switch (props.style.backgroundColor) {
+        | Some((r, g, b, a)) => NSView.setBackgroundColor(view, r, g, b, a)
+        | None => ()
+        };
+        View(view);
+      | Text => View(NSView.make((0., 0., 0., 0.)))
+      | Button =>
+        let button = NSButton.make((0., 0., 100., 100.));
+        switch (props.title) {
+        | Some(v) => NSButton.setTitle(button, v)
+        | None => ()
+        };
+        switch (props.onClick) {
+        | Some(c) => NSButton.setCallback(button, c)
+        | None => ()
+        };
+        Button(button);
+      }
+    | _ => View(NSView.make((0., 0., 0., 0.)))
     };
-  let createTextInstance = value => View(NSView.make((0., 0., 100., 100.)));
-  let commitUpdate = (node, oldProps, props) => print_endline("Updating");
+  let createTextInstance = _value => View(NSView.make((0., 0., 100., 100.)));
+  let commitUpdate = (_node, _oldProps, _props) => print_endline("Updating");
   let appendChild = (parent, node) =>
     switch (parent, node) {
     | (View(parent), View(node)) => NSView.addSubview(parent, node)
@@ -44,23 +48,23 @@ module Host: ReconcilerSpec.HostConfig = {
     print_endline("Removing child");
   };
   let applyLayout = (node, layout: ReconcilerSpec.cssLayout) =>
-    switch node {
+    switch (node) {
     | View(view) =>
       NSView.setRect(
         view,
-        (layout.left, layout.top, layout.width, layout.height)
+        (layout.left, layout.top, layout.width, layout.height),
       )
     | Button(view) =>
       NSView.setRect(
         Obj.magic(view),
-        (layout.left, layout.top, layout.width, layout.height)
+        (layout.left, layout.top, layout.width, layout.height),
       )
     };
 };
 
 module MacOSReconciler = Reconciler.Make(Host);
 
-let render = (reactElement: reactElement) => {
+let render = (pureElement: pureElement) => {
   let app = Lazy.force(NSApplication.app);
   app#applicationWillFinishLaunching(() => {
     let w = NSWindow.windowWithContentRect(0, (0., 0., 400., 400.));
@@ -76,7 +80,7 @@ let render = (reactElement: reactElement) => {
         "Did resize w: "
         ++ string_of_int(width)
         ++ " h:"
-        ++ string_of_int(height)
+        ++ string_of_int(height),
       );
     });
     MacOSReconciler.updateQueue :=
@@ -84,8 +88,8 @@ let render = (reactElement: reactElement) => {
       @ [
         HostRoot({
           node: Obj.magic(View(NSWindow.getContentView(w))),
-          children: reactElement
-        })
+          children: pureElement,
+        }),
       ];
     MacOSReconciler.perfomWork();
   });

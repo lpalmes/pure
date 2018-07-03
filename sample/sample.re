@@ -1,10 +1,10 @@
-open RereactPrimitives;
+open PurePrimitives;
 
 module Test = {
   let createElement = (~children as _, _) =>
-    Rereact.element({
-      ...Rereact.statelessComponent("Test"),
-      render: _self => <view> <text> (Rereact.string("Hello")) </text> </view>
+    Pure.element({
+      ...Pure.statelessComponent("Test"),
+      render: _self => <view> <text> (Pure.string("Hello")) </text> </view>,
     });
 };
 
@@ -13,19 +13,19 @@ module ReducerComponent = {
   type action =
     | Add(int);
   let createElement = (~children as _, _) =>
-    Rereact.element({
-      ...Rereact.reducerComponent("Reducer Component"),
+    Pure.element({
+      ...Pure.reducerComponent("Reducer Component"),
       initialState: () => 2,
       reducer: (action: action, state: state) =>
-        switch action {
-        | Add(value) => Rereact.Update(value + state)
+        switch (action) {
+        | Add(value) => Pure.Update(value + state)
         },
-      render: self =>
+      render: _self =>
         <view
           layout={
             ...defaultLayout,
             flex: 1,
-            justifyContent: JustifySpaceAround
+            justifyContent: JustifySpaceAround,
           }>
           <view layout={...defaultLayout, height: 200, flexDirection: Row}>
             <button layout={...defaultLayout, flex: 1} title="Click me" />
@@ -43,6 +43,6 @@ module ReducerComponent = {
             layout={...defaultLayout, flex: 1, margin: 16}
             style={backgroundColor: Some((0., 0., 0., 0.2))}
           />
-        </view>
+        </view>,
     });
 };

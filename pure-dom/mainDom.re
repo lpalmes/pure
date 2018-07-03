@@ -1,0 +1,1 @@
+PureDom.render(<Sample.ReducerComponent />, "container");
