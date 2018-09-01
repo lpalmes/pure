@@ -10,6 +10,11 @@ let () = {
       incr(i);
       Printf.ksprintf(NSWindow.setTitle(w), "Resized %d times", i^);
     };
+
+    let button = NSButton.make((0., 0., 100., 100.));
+    NSButton.setTitle(button, "Click me");
+    NSButton.setCallback(button, () => print_endline("Hello"));
+    NSWindow.addSubview(w, Obj.magic(button));
     NSWindow.windowDidResize(f);
     NSWindow.center(w);
     NSWindow.makeKeyAndOrderFront(w);

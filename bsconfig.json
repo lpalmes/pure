@@ -1,15 +1,19 @@
 {
   "name": "pure",
   "ocamlfind-dependencies": ["lablgtk2"],
-  "bs-dependencies": ["bs-webapi"],
+  "bs-dependencies": ["bs-webapi", "@glennsl/bs-jest"],
   "static-libraries": ["pure-macos/cocoa_bindings/lib/cocoa_stubs.o"],
   "c-linker-flags": ["'-framework Cocoa'"],
   "sources": [
     { "dir": "pure", "subdirs": true },
     {
       "backend": "js",
-      "dir": "pure-dom",
-      "subdirs": true
+      "dir": "pure-dom"
+    },
+    {
+      "backend": "js",
+      "dir": "pure-dom/__tests__",
+      "type": "dev"
     },
     {
       "backend": ["native", "bytecode"],

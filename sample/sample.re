@@ -4,7 +4,7 @@ module Test = {
   let createElement = (~children as _, _) =>
     Pure.element({
       ...Pure.statelessComponent("Test"),
-      render: _self => <view> <text> (Pure.string("Hello")) </text> </view>,
+      render: _self => <view />,
     });
 };
 
@@ -28,7 +28,11 @@ module ReducerComponent = {
             justifyContent: JustifySpaceAround,
           }>
           <view layout={...defaultLayout, height: 200, flexDirection: Row}>
-            <button layout={...defaultLayout, flex: 1} title="Click me" />
+            <button
+              layout={...defaultLayout, flex: 1}
+              title="Click me"
+              onClick=(() => print_endline("OH hey"))
+            />
             <button layout={...defaultLayout, flex: 1} title="Or me" />
           </view>
           <view

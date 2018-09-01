@@ -4,8 +4,9 @@
     "start": "bsb -w",
     "run-app": "bsb -make-world -backend bytecode; ./lib/bs/bytecode/mainmacos.byte",
     "start:js": "bsb -backend js -w",
-    "start:native": "bsb -backend native -w",
     "build:js": "bsb -make-world -backend js",
+    "test:js": "jest",
+    "start:native": "bsb -backend native -w",
     "build:bytecode": "bsb -make-world -backend bytecode",
     "build:native": "bsb -make-world -backend native",
     "clean": "bsb -clean-world",
@@ -14,5 +15,9 @@
   "dependencies": {
     "bs-platform": "bsansouci/bsb-native#3.2.0",
     "bs-webapi": "git+https://github.com/lpalmes/bs-webapi-incubator#patch-1"
+  },
+  "devDependencies": {
+    "@glennsl/bs-jest": "^0.4.3",
+    "jest": "^23.5.0"
   }
 }

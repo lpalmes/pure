@@ -182,7 +182,7 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
   let beginWork = (Fiber(wipFiber)) =>
     switch (wipFiber.tag) {
     | Host
-    | HostRoot => updateHost(Fiber(wipFiber))
+    | HostRoot => updateHost(Fiber(wipFiber));
     | Component => updateComponent(Fiber(wipFiber))
     };
   let commitDeletion = (fiber, domParent) => {
@@ -370,7 +370,13 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
       nextUnitOfWork :=
         (
           switch (nextUnitOfWork^) {
-          | Some(unitOfWork) => perfomUnitOfWork(unitOfWork)
+          | Some(unitOfWork) => 
+          let Fiber(wipFiber) = unitOfWork;
+          Js.log("one unit of work");
+          module Debug = PureDebug.Make(Config);
+          Debug.getFiberTag(wipFiber) |> Js.log;
+          Debug.getFiberElement(wipFiber.fiberType) |> Js.log;
+          perfomUnitOfWork(unitOfWork)
           | None => None
           }
         );

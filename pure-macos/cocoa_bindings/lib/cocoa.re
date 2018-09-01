@@ -1,5 +1,4 @@
 external _NSLog : string => unit = "ml_NSLog";
-
 let log = fmt => Printf.ksprintf(_NSLog, fmt);
 
 type nsRect = (float, float, float, float);
@@ -22,14 +21,22 @@ module NSView = {
   external getHeight : nsView => float = "ml_NSViewGetHeight";
   external getWidth : nsView => float = "ml_NSViewGetWidth";
   external setBackgroundColor :
-    (nsView, [@unboxed] float, [@unboxed] float, [@unboxed] float, [@unboxed] float) => unit =
+    (
+      nsView,
+      [@unboxed] float,
+      [@unboxed] float,
+      [@unboxed] float,
+      [@unboxed] float
+    ) =>
+    unit =
     "View_setBackgroundColor";
 };
 
 module NSButton = {
   external make : nsRect => nsButton = "ml_NSButtonWithContentRect";
   external setTitle : (nsButton, string) => unit = "ml_NSButtonSetTitle";
-  external setCallback : (nsButton, unit => unit) => unit = "Button_setCallback";
+  external setCallback : (nsButton, unit => unit) => unit =
+    "Button_setCallback";
 };
 
 module NSWindow = {
@@ -38,10 +45,12 @@ module NSWindow = {
   let win_id = ref(0);
   let globalWindowDelegate = ref(delegate());
   external getContentView : nsWindow => nsView = "ml_NSWindowGetContentView";
-  external windowWithContentRect : (int, nsRect) => nsWindow = "ml_NSWindow_windowWithContentRect";
+  external windowWithContentRect : (int, nsRect) => nsWindow =
+    "ml_NSWindow_windowWithContentRect";
   external isVisible : nsWindow => bool = "ml_NSWindow_isVisible";
   external center : nsWindow => unit = "ml_NSWindow_center";
-  external makeKeyAndOrderFront : nsWindow => unit = "ml_NSWindow_makeKeyAndOrderFront";
+  external makeKeyAndOrderFront : nsWindow => unit =
+    "ml_NSWindow_makeKeyAndOrderFront";
   external setTitle : (nsWindow, string) => unit = "ml_NSWindow_setTitle";
   external title : nsWindow => string = "ml_NSWindow_title";
   external addSubview : (nsWindow, nsView) => unit = "ml_NSWindowAddSubview";
@@ -54,7 +63,7 @@ module NSWindow = {
   type windowDelegateSelector =
     | WindowDidResize;
   let windowDelegate = (id, sel) =>
-    switch sel {
+    switch (sel) {
     | WindowDidResize => globalWindowDelegate^.windowDidResize()
     };
   let () = Callback.register("[NSWindow delegate]", windowDelegate);
@@ -62,7 +71,8 @@ module NSWindow = {
 
 type nsApplication;
 
-external _NSApplication_NSApp : int => nsApplication = "ml_NSApplication_NSApp";
+external _NSApplication_NSApp : int => nsApplication =
+  "ml_NSApplication_NSApp";
 
 external _NSApplication_run : nsApplication => unit = "ml_NSApplication_run";
 
@@ -71,7 +81,9 @@ module NSApplication = {
     pub run: unit;
     pub applicationWillFinishLaunching: (unit => unit) => unit
   };
-  type applicationDelegate = {mutable applicationWillFinishLaunching: unit => unit};
+  type applicationDelegate = {
+    mutable applicationWillFinishLaunching: unit => unit,
+  };
   let delegate = () => {applicationWillFinishLaunching: () => ()};
   let app_id = ref(0);
   let globalApplicationDelegate = ref(delegate());
@@ -87,14 +99,16 @@ module NSApplication = {
       {
         as _;
         pub run = _NSApplication_run(app);
-        pub applicationWillFinishLaunching = f => del.applicationWillFinishLaunching = f
+        pub applicationWillFinishLaunching = f =>
+          del.applicationWillFinishLaunching = f
       };
     };
   type delegateSelector =
     | ApplicationWillFinishLaunching;
   let applicationDelegate = (id, sel) =>
-    switch sel {
-    | ApplicationWillFinishLaunching => globalApplicationDelegate^.applicationWillFinishLaunching()
+    switch (sel) {
+    | ApplicationWillFinishLaunching =>
+      globalApplicationDelegate^.applicationWillFinishLaunching()
     };
   let () = Callback.register("[NSApp delegate]", applicationDelegate);
 };
