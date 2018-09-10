@@ -245,17 +245,35 @@ CAMLprim value ml_NSViewWithContentRect (value rect_v)
   CAMLreturn (Val_NSView (view));
 }
 
-CAMLprim value View_setBackgroundColor(value view, double red, double green, double blue, double alpha) {
-  CAMLparam1 (view);
-  View *nsView = NSView_val (view);
+CAMLprim value View_setBackgroundColor(value view_v, value red_v, value green_v, value blue_v, value alpha_v)
+{
+  CAMLparam5(view_v, red_v, blue_v, green_v, alpha_v);
 
-  [nsView setWantsLayer:true];
-  [nsView.layer setBackgroundColor:[NSColor colorWithRed:red green:green blue:blue alpha:alpha].CGColor];
-  [nsView.layer setNeedsDisplay];
-  [nsView setNeedsDisplay:YES];
+  View *view = NSView_val(view_v);
 
-  CAMLreturn (Val_unit);
+  CGFloat red = Double_val(red_v) / 255;
+  CGFloat blue = Double_val(blue_v) / 255;
+  CGFloat green = Double_val(green_v) / 255;
+  CGFloat alpha = Double_val(alpha_v);
+
+  [view setWantsLayer:YES];
+  [view.layer setBackgroundColor:[[NSColor colorWithRed:red green:green blue:blue alpha:alpha] CGColor]];
+
+  CAMLreturn(Val_unit);
 }
+
+// CAMLprim value View_setBackgroundColor(value view, double red, double green, double blue, double alpha) {
+//   CAMLparam1 (view);
+//   View *nsView = NSView_val (view);
+
+//   NSLog(@"Red: %f Green: %f Blue: %f Alpha: %f", red, green, blue, alpha);
+//   [nsView setWantsLayer:true];
+//   [nsView.layer setBackgroundColor:[NSColor colorWithRed:1.0 green:green blue:blue alpha:alpha].CGColor];
+//   [nsView.layer setNeedsDisplay];
+//   [nsView setNeedsDisplay:YES];
+
+//   CAMLreturn (Val_unit);
+// }
 
 CAMLprim value ml_NSViewSetContentRect (value view, value rect_v)
 {
@@ -336,28 +354,38 @@ CAMLprim value ml_NSWindowAddSubview (value win_v, value view_v)
 
 typedef void (^ActionBlock)();
 
-@interface Button : NSButton {
-  ActionBlock _actionBlock;
-}
+@interface Button : NSButton
 
--(void) handleActionwithBlock:(ActionBlock) action;
+@property(nonatomic, copy) ActionBlock _actionBlock;
+
+- (void)onClick:(ActionBlock)action;
 @end
 
 @implementation Button
 
--(void) handleActionwithBlock:(ActionBlock) action
+- (void)onClick:(ActionBlock)action
 {
-  _actionBlock = action;
+  self._actionBlock = action;
   [self setTarget:self];
   [self setAction:@selector(callActionBlock:)];
 }
 
--(void) callActionBlock:(id) sender {
-  NSLog(@"%@",sender);
-    printf("Clicked callback\n");
-  _actionBlock();
+- (void)callActionBlock:(id)sender
+{
+#pragma unused(sender)
+  self._actionBlock();
 }
 @end
+
+#define Val_View(v) ((value)(v))
+#define View_val(v) ((__bridge View *)(value)(v))
+
+#define Val_Button(v) ((value)(v))
+#define Button_val(v) ((__bridge Button *)(value)(v))
+
+dispatch_queue_t ml_q;
+
+
 
 #define Val_NSButton(v) ((value)(v))
 #define NSButton_val(v) ((Button *)(v))
@@ -389,13 +417,18 @@ CAMLprim value ml_NSButtonSetTitle (value button_v, value str_v)
 }
 
 
-CAMLprim value Button_setCallback(value button_v, value c) {
-  CAMLparam2 (button_v, c);
-  Button *button = NSButton_val (button_v);
-  value __block callback_ = c;
-  caml_register_global_root(&callback_);
-  [button handleActionwithBlock:^{
-      caml_callback(callback_, Val_unit);
+CAMLprim value Button_setCallback(value btn_v, value callback_v)
+{
+  CAMLparam2(btn_v, callback_v);
+
+  Button *btn = Button_val(btn_v);
+  value callback = callback_v;
+
+  caml_register_global_root(&callback);
+
+  [btn onClick:^{
+    caml_callback(callback, Val_unit);
   }];
-  CAMLreturn(Val_unit);
+
+  CAMLreturn(Val_Button(btn));
 }

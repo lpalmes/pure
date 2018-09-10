@@ -12,9 +12,20 @@ let () = {
     };
 
     let button = NSButton.make((0., 0., 100., 100.));
+    let secondButton = NSButton.make((100., 100., 100., 100.));
     NSButton.setTitle(button, "Click me");
-    NSButton.setCallback(button, () => print_endline("Hello"));
+    NSButton.setCallback(
+      button,
+      () => {
+        print_endline("Relayouuuuutl");
+        NSView.setRect(Obj.magic(button), (200., 200., 100., 100.));
+      },
+    );
+    NSButton.setCallback(secondButton, () =>
+      print_endline("Second callback")
+    );
     NSWindow.addSubview(w, Obj.magic(button));
+    NSWindow.addSubview(w, Obj.magic(secondButton));
     NSWindow.windowDidResize(f);
     NSWindow.center(w);
     NSWindow.makeKeyAndOrderFront(w);

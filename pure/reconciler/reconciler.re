@@ -3,6 +3,7 @@ open Pure;
 module Make = (Config: ReconcilerSpec.HostConfig) => {
   module FiberTypes = FiberTypes.Make(Config);
   module Layout = ReconcilerLayout.Make(Config);
+  module Debug = PureDebug.Make(Config);
   open FiberTypes;
   let updateQueue: ref(list(fiberUpdate)) = ref([]);
   let nextUnitOfWork: ref(option(opaqueFiber)) = ref(None);
@@ -26,8 +27,41 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
         | item => Some(item)
         | exception (Failure(_)) => None
         };
-      switch (oldFiber^, element) {
-      | (None, Some(elm)) =>
+
+      let sameType =
+        switch (oldFiber.contents, element) {
+        | (Some(Fiber(oldFiber)), Some(elm)) =>
+          let same =
+            switch (oldFiber.fiberType, elm) {
+            | (Flat(Component(_)), Flat(Component(_))) => true
+            | (Flat(String(a)), Flat(String(b))) when a == b => true
+            | (Flat(Nil), Flat(Nil)) => true
+            | (Nested(a, _, _), Nested(b, _, _)) when a == b => true
+            | _ => false
+            };
+          if (same) {
+            newFiber :=
+              Some(
+                Fiber({
+                  tag: oldFiber.tag,
+                  state: oldFiber.state,
+                  fiberType: elm,
+                  parent: Some(Fiber(wipFiber)),
+                  child: None,
+                  sibling: None,
+                  alternate: Some(Fiber(oldFiber)),
+                  effectTag: Some(Update),
+                  effects: [],
+                  stateNode: oldFiber.stateNode,
+                }),
+              );
+          };
+          same;
+        | _ => false
+        };
+
+      switch (element, sameType) {
+      | (Some(elm), false) =>
         newFiber :=
           Some(
             Fiber({
@@ -49,71 +83,21 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
               stateNode: None,
             }),
           )
-      | (Some(Fiber(oldFiber)), None) =>
-        oldFiber.effectTag = Some(Deletion);
-        wipFiber.effects = wipFiber.effects @ [Fiber(oldFiber)];
-      | (Some(Fiber(oldFiber)), Some(elm)) =>
-        let sameType =
-          switch (oldFiber.fiberType, elm) {
-          | (Flat(Component(_)), Flat(Component(_))) => true
-          | (Flat(String(a)), Flat(String(b))) when a == b => true
-          | (Flat(Nil), Flat(Nil)) => true
-          | (Nested(a, _, _), Nested(b, _, _)) when a == b => true
-          | _ => false
-          };
-        if (sameType) {
-          newFiber :=
-            Some(
-              Fiber({
-                tag:
-                  switch (elm) {
-                  | Flat(Component(_)) => Component
-                  | Flat(String(_)) => Host
-                  | Flat(Nil) => Host
-                  | Nested(_, _, _) => Host
-                  },
-                state: None,
-                fiberType: elm,
-                parent: Some(Fiber(wipFiber)),
-                child: None,
-                sibling: None,
-                alternate: Some(Fiber(oldFiber)),
-                effectTag: Some(Update),
-                effects: [],
-                stateNode: oldFiber.stateNode,
-              }),
-            );
-        } else {
-          newFiber :=
-            Some(
-              Fiber({
-                tag:
-                  switch (elm) {
-                  | Flat(Component(_)) => Component
-                  | Flat(String(_)) => Host
-                  | Flat(Nil) => Host
-                  | Nested(_, _, _) => Host
-                  },
-                state: None,
-                fiberType: elm,
-                parent: Some(Fiber(wipFiber)),
-                child: None,
-                sibling: None,
-                alternate: None,
-                effectTag: Some(Placement),
-                effects: [],
-                stateNode: None,
-              }),
-            );
-          oldFiber.effectTag = Some(Deletion);
-          wipFiber.effects = wipFiber.effects @ [Fiber(oldFiber)];
-        };
       | _ => ()
       };
+
+      switch (oldFiber.contents, sameType) {
+      | (Some(Fiber(oldFiber)), false) =>
+        oldFiber.effectTag = Some(Deletion);
+        wipFiber.effects = wipFiber.effects @ [Fiber(oldFiber)];
+      | _ => ()
+      };
+
       switch (oldFiber^) {
       | Some(Fiber(old)) => oldFiber := old.sibling
       | None => ()
       };
+
       if (index^ == 0) {
         wipFiber.child = newFiber^;
       } else {
@@ -122,10 +106,11 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
         | _ => ()
         };
       };
+
       index := index^ + 1;
     };
   };
-  let createSelf = f : self('state, 'action) =>
+  let createSelf = f: self('state, 'action) =>
     switch (f) {
     | Fiber(
         {fiberType: Flat(Component(component)), state: Some(state)} as fiber,
@@ -169,7 +154,6 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
       | Some(_) => ()
       };
       reconcileChildrenArray(Fiber(wipFiber), elements);
-    | Flat(Component(_)) => updateComponent(Fiber(wipFiber))
     | Flat(String(value)) =>
       switch (wipFiber.stateNode) {
       | None =>
@@ -177,12 +161,17 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
         wipFiber.stateNode = Some(node);
       | Some(_) => ()
       }
+    | Flat(Component(_)) => ()
     | Flat(Nil) => ()
     };
+
+  let updateHostRoot = (Fiber(wipFiber)) =>
+    reconcileChildrenArray(Fiber(wipFiber), [wipFiber.fiberType]);
+
   let beginWork = (Fiber(wipFiber)) =>
     switch (wipFiber.tag) {
-    | Host
-    | HostRoot => updateHost(Fiber(wipFiber));
+    | Host => updateHost(Fiber(wipFiber))
+    | HostRoot => updateHostRoot(Fiber(wipFiber))
     | Component => updateComponent(Fiber(wipFiber))
     };
   let commitDeletion = (fiber, domParent) => {
@@ -261,6 +250,20 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
       }
     };
   let commitAllWork = fiber => {
+    Js.log("Effects: " ++ string_of_int(List.length(fiber.effects)));
+    List.iter(
+      (Fiber(f)) =>
+        (
+          switch (f.effectTag) {
+          | Some(Placement) => "Placement"
+          | Some(Update) => "Update"
+          | Some(Deletion) => "Deletion"
+          | None => "No effect"
+          }
+        )
+        |> Js.log,
+      fiber.effects,
+    );
     List.iter(commitWork, fiber.effects);
     nextUnitOfWork := None;
     pendingCommit := None;
@@ -275,7 +278,7 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
       parent.effects = parentEffects @ childEffects @ fiberEffects;
     | None => pendingCommit := Some(Fiber(fiber))
     };
-  let perfomUnitOfWork = (Fiber(wipFiber)) : option(opaqueFiber) => {
+  let perfomUnitOfWork = (Fiber(wipFiber)): option(opaqueFiber) => {
     beginWork(Fiber(wipFiber));
     switch (wipFiber.child) {
     | Some(Fiber(_)) => wipFiber.child
@@ -283,7 +286,7 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
       let unitOfWork = ref(Some(Fiber(wipFiber)));
       let returnUnitOfWork: ref(option(opaqueFiber)) = ref(None);
       while (unitOfWork^ != None) {
-        switch (unitOfWork^) {
+        switch (unitOfWork.contents) {
         | Some(Fiber(unit)) =>
           completeWork(unit);
           switch (unit.sibling) {
@@ -292,21 +295,23 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
             returnUnitOfWork := Some(sibiling);
           | None => unitOfWork := unit.parent
           };
-        | _ => ()
+        | None => ()
         };
       };
-      returnUnitOfWork^;
+      returnUnitOfWork.contents;
     };
   };
   let getRoot = fiber => {
     let node = ref(fiber);
-    while (node.contents.parent != None) {
+    let loop = ref(0);
+    while (node.contents.parent != None && loop.contents < 3000) {
       switch (node.contents.parent) {
-      | Some(parent) => node := Obj.magic(parent)
+      | Some(Fiber(parent)) => node.contents = Obj.magic(parent)
       | _ => ()
       };
+      loop.contents = loop.contents + 1;
     };
-    node^;
+    node.contents;
   };
   let resetNextUnitOfWork = () => {
     let update =
@@ -358,8 +363,14 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
   };
   let perfomLayout = (width, height) =>
     switch (fiberRoot^) {
-    | Some(f) => Layout.layout(f, width, height)
-    | None => ()
+    | Some(Fiber({child: Some(f)})) => Layout.layout(f, width, height)
+    | _ => ()
+    };
+
+  let rec countAlternateFibers = (Fiber(fiber), count) =>
+    switch (fiber.alternate) {
+    | Some(f) => countAlternateFibers(f, count + 1)
+    | None => count
     };
   let workLoop = () => {
     switch (nextUnitOfWork^) {
@@ -370,20 +381,18 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
       nextUnitOfWork :=
         (
           switch (nextUnitOfWork^) {
-          | Some(unitOfWork) => 
-          let Fiber(wipFiber) = unitOfWork;
-          Js.log("one unit of work");
-          module Debug = PureDebug.Make(Config);
-          Debug.getFiberTag(wipFiber) |> Js.log;
-          Debug.getFiberElement(wipFiber.fiberType) |> Js.log;
-          perfomUnitOfWork(unitOfWork)
+          | Some(unitOfWork) => perfomUnitOfWork(unitOfWork)
           | None => None
           }
         );
     };
     switch (pendingCommit^) {
-    | Some(Fiber(pendingCommit)) =>
+    | Some(Fiber(pendingCommit) as f) =>
       commitAllWork(pendingCommit);
+      print_endline(
+        "Fiber root has this amount of alternates: "
+        ++ string_of_int(countAlternateFibers(f, 0)),
+      );
       perfomLayout(400, 400);
     | None => ()
     };
@@ -395,6 +404,18 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
       | Some(_) => true
       | None => false
       };
+
+    /* switch (fiberRoot.contents) {
+       | Some(f) =>
+         f |> Debug.printTree |> print_endline;
+         let Fiber(fiber) = f;
+         switch (fiber.alternate) {
+         | Some(alternate) =>
+           "Alternate: \n\n" ++ (alternate |> Debug.printTree) |> print_endline
+         | None => print_endline("No alternate fiber")
+         };
+       | None => ()
+       }; */
     globalWorker.work = perfomWork;
     if (moreWork || List.length(updateQueue^) > 0) {
       perfomWork();
