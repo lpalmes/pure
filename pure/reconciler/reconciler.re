@@ -250,20 +250,6 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
       }
     };
   let commitAllWork = fiber => {
-    Js.log("Effects: " ++ string_of_int(List.length(fiber.effects)));
-    List.iter(
-      (Fiber(f)) =>
-        (
-          switch (f.effectTag) {
-          | Some(Placement) => "Placement"
-          | Some(Update) => "Update"
-          | Some(Deletion) => "Deletion"
-          | None => "No effect"
-          }
-        )
-        |> Js.log,
-      fiber.effects,
-    );
     List.iter(commitWork, fiber.effects);
     nextUnitOfWork := None;
     pendingCommit := None;
@@ -387,12 +373,8 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
         );
     };
     switch (pendingCommit^) {
-    | Some(Fiber(pendingCommit) as f) =>
+    | Some(Fiber(pendingCommit)) =>
       commitAllWork(pendingCommit);
-      print_endline(
-        "Fiber root has this amount of alternates: "
-        ++ string_of_int(countAlternateFibers(f, 0)),
-      );
       perfomLayout(400, 400);
     | None => ()
     };

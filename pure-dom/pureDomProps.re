@@ -40,19 +40,20 @@ let reconcile =
     }
   | None => Webapi.Dom.Element.removeAttribute("disabled", domElement)
   };
-  switch (prevProps, props.onClick) {
-  | (None, Some(func)) =>
-    Js.log("adding event listener");
-    Webapi.Dom.Element.addClickEventListener(_ => func(), domElement);
-  | (Some({onClick: Some(prevFunc)}), Some(func)) when prevFunc !== func =>
-    Webapi.Dom.Element.removeClickEventListener(_ => prevFunc(), domElement);
-    Webapi.Dom.Element.addClickEventListener(_ => func(), domElement);
-    Js.log("removing and adding new event listener");
-  | (Some({onClick: Some(prevFunc)}), None) =>
-    Webapi.Dom.Element.removeClickEventListener(_ => prevFunc(), domElement);
-    Js.log("removing event listener");
-  | _ => ()
-  };
+  PureDomEvents.handleEvent("onClick", props.onClick, domElement, domElement);
+  /* switch (prevProps, props.onClick) {
+     | (None, Some(func)) =>
+       Js.log("adding event listener");
+       Webapi.Dom.Element.addClickEventListener(_ => func(), domElement);
+     | (Some({onClick: Some(prevFunc)}), Some(func)) when prevFunc !== func =>
+       Webapi.Dom.Element.removeClickEventListener(_ => prevFunc(), domElement);
+       Webapi.Dom.Element.addClickEventListener(_ => func(), domElement);
+       Js.log("removing and adding new event listener");
+     | (Some({onClick: Some(prevFunc)}), None) =>
+       Webapi.Dom.Element.removeClickEventListener(_ => prevFunc(), domElement);
+       Js.log("removing event listener");
+     | _ => ()
+     }; */
   switch (prevProps, props.onChangeText) {
   | (None, Some(func)) =>
     Webapi.Dom.Element.addEventListener(
