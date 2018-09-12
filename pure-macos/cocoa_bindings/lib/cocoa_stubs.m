@@ -336,6 +336,15 @@ CAMLprim value ml_NSViewAddSubview (value viewA, value viewB)
   CAMLreturn (Val_unit);
 }
 
+CAMLprim value ml_NSViewRemoveFromSuperview (value view_v)
+{
+  CAMLparam1 (view_v);
+  View *view = NSView_val (view_v);
+  [view removeFromSuperview];
+  CAMLreturn (Val_unit);
+}
+
+
 CAMLprim value ml_NSWindowGetContentView (value win_v)
 {
   CAMLparam1 (win_v);

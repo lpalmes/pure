@@ -22,7 +22,7 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
   and opaqueFiber =
     | Fiber(fiber('state)): opaqueFiber;
   type fiberUpdateHost = {
-    node: Config.hostNode,
+    node: option(Config.hostNode),
     children: Pure.pureElement,
   };
   type fiberUpdateComponent = {fiber: opaqueFiber};

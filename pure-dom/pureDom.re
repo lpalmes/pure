@@ -40,6 +40,6 @@ module DOMReconciler = Reconciler.Make(Host);
 
 let render = (pureElement: pureElement, container: Host.hostNode) => {
   DOMReconciler.updateQueue :=
-    [HostRoot({node: container, children: pureElement})];
+    [HostRoot({node: Some(container), children: pureElement})];
   DOMReconciler.perfomWork();
 };

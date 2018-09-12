@@ -1,1 +1,1 @@
-PureMacOS.render(<Sample.ReducerComponent />);
+PureMacOS.render(<Sample.Test />);

@@ -18,7 +18,7 @@ let () = {
       button,
       () => {
         print_endline("Relayouuuuutl");
-        NSView.setRect(Obj.magic(button), (200., 200., 100., 100.));
+        NSView.removeFromSuperview(Obj.magic(button));
       },
     );
     NSButton.setCallback(secondButton, () =>

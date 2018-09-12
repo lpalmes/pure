@@ -38,8 +38,6 @@ describe("Rendering", () => {
   test(
     "Should render <div></div> and then replace for a <button></button>", () => {
     PureDom.render(<view />, Obj.magic(container.contents));
-    let inner = Element.innerHTML(container^);
-    expect(inner) |> toBe("<div></div>");
     PureDom.render(<button />, Obj.magic(container.contents));
     let inner = Element.innerHTML(container^);
     expect(inner) |> toBe("<button></button>");
@@ -53,11 +51,8 @@ describe("Rendering", () => {
 
   test(
     "Should render a proper <div><div></div></div> and delete it's child", () => {
-    Js.log("Rendering <view><button/> </view>");
     PureDom.render(<view> <button /> </view>, Obj.magic(container.contents));
-    Js.log("Rendering <view/>");
     PureDom.render(<view />, Obj.magic(container.contents));
-    Js.log("Rendering <view><button/> </view>");
     PureDom.render(<view> <button /> </view>, Obj.magic(container.contents));
     let inner = Element.innerHTML(container^);
     expect(inner) |> toBe("<div><button></button></div>");

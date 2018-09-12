@@ -196,9 +196,6 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
           | None => internalBreak := true
           };
         };
-        if (fiberNode == fiber) {
-          break := true;
-        };
         node := sibling;
       | _ => break := true
       };
@@ -220,11 +217,11 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
         };
         switch (parentFiber.contents.stateNode) {
         | None => ()
-        | Some(domParent) =>
+        | Some(parentNode) =>
           switch (fiber.effectTag) {
           | Some(Placement) =>
             switch (fiber.stateNode) {
-            | Some(node) => Config.appendChild(domParent, node)
+            | Some(node) => Config.appendChild(parentNode, node)
             | None => ()
             }
           | Some(Update) =>
@@ -243,7 +240,7 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
               Config.commitUpdate(node, None, props)
             | _ => ()
             }
-          | Some(Deletion) => commitDeletion(Fiber(fiber), domParent)
+          | Some(Deletion) => commitDeletion(Fiber(fiber), parentNode)
           | None => ()
           }
         };
@@ -324,7 +321,7 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
             alternate: fiberRoot^,
             effectTag: None,
             effects: [],
-            stateNode: Some(update.node),
+            stateNode: update.node,
           }),
         )
     | Some(Component({fiber: Fiber(fiber)})) =>
@@ -398,9 +395,10 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
          };
        | None => ()
        }; */
-    globalWorker.work = perfomWork;
     if (moreWork || List.length(updateQueue^) > 0) {
       perfomWork();
     };
   };
+
+  globalWorker.work = perfomWork;
 };

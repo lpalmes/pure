@@ -3,8 +3,12 @@ open Pure;
 open Cocoa;
 
 type hostNative =
+  | Window(nsWindow)
   | View(nsView)
   | Button(nsButton);
+
+let layout: ref((LayoutTypes.unitOfM, LayoutTypes.unitOfM) => unit) =
+  ref((w, h) => print_endline("the layout function has not been replaced"));
 
 module Host: ReconcilerSpec.HostConfig = {
   type hostNode = hostNative;
@@ -34,11 +38,33 @@ module Host: ReconcilerSpec.HostConfig = {
         | None => ()
         };
         Button(button);
+      | Window =>
+        let w = NSWindow.windowWithContentRect(0, (0., 0., 400., 400.));
+        NSWindow.center(w);
+        NSWindow.setMinSize(w, (400., 400.));
+        NSWindow.makeKeyAndOrderFront(w);
+        NSWindow.windowDidResize(() => {
+          let contentView = NSWindow.getContentView(w);
+          let width = NSView.getWidth(contentView) |> int_of_float;
+          let height = NSView.getHeight(contentView) |> int_of_float;
+          print_endline(
+            "Did resize w: "
+            ++ string_of_int(width)
+            ++ " h:"
+            ++ string_of_int(height),
+          );
+          layout.contents(width, height);
+        });
+        Window(w);
       };
     | _ => View(NSView.make((0., 0., 0., 0.)))
     };
-  let createTextInstance = _value => View(NSView.make((0., 0., 100., 100.)));
-  let commitUpdate = (node, oldProps, props) =>
+  let createTextInstance = _value => {
+    print_endline("Creating text instance");
+    View(NSView.make((0., 0., 100., 100.)));
+  };
+  let commitUpdate = (node, oldProps, props) => {
+    print_endline("Commiting and update");
     switch (node) {
     | Button(button) =>
       switch (props.title) {
@@ -53,14 +79,27 @@ module Host: ReconcilerSpec.HostConfig = {
 
     | _ => ()
     };
-  let appendChild = (parent, node) =>
+  };
+  let appendChild = (parent, node) => {
+    print_endline("Apending child");
     switch (parent, node) {
     | (View(parent), View(node)) => NSView.addSubview(parent, node)
     | (View(parent), Button(node)) =>
       NSView.addSubview(parent, Obj.magic(node))
+    | (Window(parent), View(node)) => NSWindow.addSubview(parent, node)
     | _ => ()
     };
-  let removeChild = (_, _) => print_endline("Removing child");
+  };
+  let removeChild = (parent, node) => {
+    print_endline("Removing child");
+    switch (parent, node) {
+    | (View(parent), View(node)) => NSView.removeFromSuperview(node)
+    | (View(parent), Button(node)) =>
+      NSView.removeFromSuperview(Obj.magic(node))
+    | (Window(parent), View(node)) => NSView.removeFromSuperview(node)
+    | _ => ()
+    };
+  };
   let applyLayout = (node, layout: ReconcilerSpec.cssLayout) =>
     switch (node) {
     | View(view) =>
@@ -74,37 +113,20 @@ module Host: ReconcilerSpec.HostConfig = {
         Obj.magic(view),
         (layout.left, layout.top, layout.width, layout.height),
       )
+    | Window(_) => ()
     };
 };
 
 module MacOSReconciler = Reconciler.Make(Host);
 
+layout := MacOSReconciler.perfomLayout;
+
 let render = (pureElement: pureElement) => {
   let app = Lazy.force(NSApplication.app);
   app#applicationWillFinishLaunching(() => {
-    let w = NSWindow.windowWithContentRect(0, (0., 0., 400., 400.));
-    NSWindow.center(w);
-    NSWindow.setMinSize(w, (400., 400.));
-    NSWindow.makeKeyAndOrderFront(w);
-    NSWindow.windowDidResize(() => {
-      let contentView = NSWindow.getContentView(w);
-      let width = NSView.getWidth(contentView) |> int_of_float;
-      let height = NSView.getHeight(contentView) |> int_of_float;
-      MacOSReconciler.perfomLayout(width, height);
-      print_endline(
-        "Did resize w: "
-        ++ string_of_int(width)
-        ++ " h:"
-        ++ string_of_int(height),
-      );
-    });
-
-    let rootView = NSWindow.getContentView(w);
     MacOSReconciler.updateQueue :=
       MacOSReconciler.updateQueue^
-      @ [
-        HostRoot({node: Obj.magic(View(rootView)), children: pureElement}),
-      ];
+      @ [HostRoot({node: None, children: pureElement})];
     MacOSReconciler.perfomWork();
   });
   app#run;
