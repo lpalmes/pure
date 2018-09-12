@@ -22,16 +22,17 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
     };
   let getFiberElement = element =>
     switch (element) {
-    | Nested(t, _, _) =>
+    | Some(Nested(t, _, _)) =>
       "Nested "
       ++ (
         switch (t) {
         | View => "View"
         | Button => "Button"
         | Text => "Text"
+        | Window => "Window"
         }
       )
-    | Flat(t) =>
+    | Some(Flat(t)) =>
       "Flat "
       ++ (
         switch (t) {
@@ -40,6 +41,7 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
         | Nil => "nil"
         }
       )
+      | None => "No pure element"
     };
   let printEffects = effects =>
     List.iter(

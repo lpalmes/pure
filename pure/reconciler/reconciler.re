@@ -33,10 +33,10 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
         | (Some(Fiber(oldFiber)), Some(elm)) =>
           let same =
             switch (oldFiber.fiberType, elm) {
-            | (Flat(Component(_)), Flat(Component(_))) => true
-            | (Flat(String(a)), Flat(String(b))) when a == b => true
-            | (Flat(Nil), Flat(Nil)) => true
-            | (Nested(a, _, _), Nested(b, _, _)) when a == b => true
+            | (Some(Flat(Component(_))), Flat(Component(_))) => true
+            | (Some(Flat(String(a))), Flat(String(b))) when a == b => true
+            | (Some(Flat(Nil)), Flat(Nil)) => true
+            | (Some(Nested(a, _, _)), Nested(b, _, _)) when a == b => true
             | _ => false
             };
           if (same) {
@@ -45,7 +45,7 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
                 Fiber({
                   tag: oldFiber.tag,
                   state: oldFiber.state,
-                  fiberType: elm,
+                  fiberType: Some(elm),
                   parent: Some(Fiber(wipFiber)),
                   child: None,
                   sibling: None,
@@ -73,7 +73,7 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
                 | Nested(_, _, _) => Host
                 },
               state: None,
-              fiberType: elm,
+              fiberType: element,
               parent: Some(Fiber(wipFiber)),
               child: None,
               sibling: None,
@@ -113,7 +113,7 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
   let createSelf = f: self('state, 'action) =>
     switch (f) {
     | Fiber(
-        {fiberType: Flat(Component(component)), state: Some(state)} as fiber,
+        {fiberType: Some(Flat(Component(component))), state: Some(state)} as fiber,
       ) => {
         state: Obj.magic(state),
         send: action => {
@@ -133,7 +133,7 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
     };
   let updateComponent = (Fiber(wipFiber) as fiber) =>
     switch (wipFiber.fiberType) {
-    | Flat(Component(component)) =>
+    | Some(Flat(Component(component))) =>
       switch (wipFiber) {
       | {alternate: Some(Fiber({state}))} =>
         wipFiber.state = Obj.magic(state)
@@ -146,27 +146,31 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
     };
   let updateHost = (Fiber(wipFiber)) =>
     switch (wipFiber.fiberType) {
-    | Nested(_, _, elements) =>
+    | Some(Nested(_, _, elements) as element) =>
       switch (wipFiber.stateNode) {
       | None =>
-        let node = Config.createInstance(wipFiber.fiberType);
+        let node = Config.createInstance(element);
         wipFiber.stateNode = Some(node);
       | Some(_) => ()
       };
       reconcileChildrenArray(Fiber(wipFiber), elements);
-    | Flat(String(value)) =>
+    | Some(Flat(String(value))) =>
       switch (wipFiber.stateNode) {
       | None =>
         let node = Config.createTextInstance(value);
         wipFiber.stateNode = Some(node);
       | Some(_) => ()
       }
-    | Flat(Component(_)) => ()
-    | Flat(Nil) => ()
+    | Some(Flat(Component(_))) => ()
+    | Some(Flat(Nil)) => ()
+    | None => ()
     };
 
   let updateHostRoot = (Fiber(wipFiber)) =>
-    reconcileChildrenArray(Fiber(wipFiber), [wipFiber.fiberType]);
+  switch wipFiber.fiberType {
+  | Some(element) => reconcileChildrenArray(Fiber(wipFiber), [element]);
+  | None => assert(false) 
+  };
 
   let beginWork = (Fiber(wipFiber)) =>
     switch (wipFiber.tag) {
@@ -227,13 +231,13 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
           | Some(Update) =>
             switch (fiber) {
             | {
-                fiberType: Nested(_, props, _),
+                fiberType: Some(Nested(_, props, _)),
                 stateNode: Some(node),
-                alternate: Some(Fiber({fiberType: Nested(_, oldProps, _)})),
+                alternate: Some(Fiber({fiberType: Some(Nested(_, oldProps, _))})),
               } =>
               Config.commitUpdate(node, Some(oldProps), props)
             | {
-                fiberType: Nested(_, props, _),
+                fiberType: Some(Nested(_, props, _)),
                 stateNode: Some(node),
                 alternate: None,
               } =>
@@ -313,7 +317,7 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
         Some(
           Fiber({
             tag: HostRoot,
-            fiberType: update.children,
+            fiberType: Some(update.children),
             state: None,
             parent: None,
             child: None,

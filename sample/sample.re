@@ -79,7 +79,6 @@ module Test = {
         | Display(show) => Pure.Update({show: show})
         },
       render: self =>
-        <window layout={...defaultLayout, flex: 1}>
           <view layout={...defaultLayout, flex: 1}>
             <button
               title="Click me"
@@ -99,6 +98,6 @@ module Test = {
                 Pure.nil
             }
           </view>
-        </window>,
+        ,
     });
 };

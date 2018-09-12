@@ -3,10 +3,10 @@ open Pure;
 module Host: ReconcilerSpec.HostConfig = {
   type hostNode = Dom.element;
   let createInstance = element =>
-    switch (element) {
+    switch element {
     | Nested(primitive, props, _) =>
       let name =
-        switch (primitive) {
+        switch primitive {
         | View => "div"
         | Text => "span"
         | Button => "button"
@@ -19,9 +19,8 @@ module Host: ReconcilerSpec.HostConfig = {
       | _ => ()
       };
       node;
-    | _ => assert(false)
+    | _ => assert false
     };
-
   let createTextInstance = value => {
     let node = Webapi.Dom.Document.createTextNode(value, Webapi.Dom.document);
     Webapi.Dom.Text.setNodeValue(node, Js.Null.return(value));
