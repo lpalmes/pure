@@ -54,11 +54,11 @@ module Flex = {
             />
             <view
               layout={...defaultLayout, flex: 1, margin: 16}
-              style={backgroundColor: Some((0., 0., 0., 0.2))}
+              style={backgroundColor: Some((0., 150., 0., 0.2))}
             />
             <view
               layout={...defaultLayout, flex: 1, margin: 16}
-              style={backgroundColor: Some((0., 0., 0., 0.2))}
+              style={backgroundColor: Some((0., 0., 150., 0.2))}
             />
           </view>
         </window>,
@@ -79,25 +79,22 @@ module Test = {
         | Display(show) => Pure.Update({show: show})
         },
       render: self =>
-          <view layout={...defaultLayout, flex: 1}>
-            <button
-              title="Click me"
-              onClick={() => self.send(Display(!self.state.show))}
-              layout={...defaultLayout, flex: 1}
-            />
-            <view>
-              {Pure.string(self.state.show ? "Showing" : "Hidden")}
-            </view>
-            {
-              self.state.show ?
-                <button
-                  title="Show this button"
-                  onClick={() => print_endline("Clicked")}
-                  layout={...defaultLayout, flex: 1}
-                /> :
-                Pure.nil
-            }
-          </view>
-        ,
+        <view layout={...defaultLayout, flex: 1}>
+          <button
+            title="Click me"
+            onClick={() => self.send(Display(!self.state.show))}
+            layout={...defaultLayout, flex: 1}
+          />
+          <view> {Pure.string(self.state.show ? "Showing" : "Hidden")} </view>
+          {
+            self.state.show ?
+              <button
+                title="Show this cool button"
+                onClick={() => print_endline("Clicked")}
+                layout={...defaultLayout, flex: 1}
+              /> :
+              Pure.nil
+          }
+        </view>,
     });
 };

@@ -9,32 +9,32 @@ module Test = {
       ...Pure.reducerComponent("Test"),
       initialState: () => {show: true},
       reducer: (action, state) =>
-        switch action {
+        switch (action) {
         | Display(show) => Pure.Update({show: show})
         },
       render: self =>
         <window layout={...defaultLayout, flex: 1}>
           <view layout={...defaultLayout, flex: 1}>
             <button
-              title=(self.state.show ? "Hide the button" : "Show the button")
-              onClick=(() => self.send(Display(! self.state.show)))
+              title={self.state.show ? "Hide the button" : "Show the button"}
+              onClick={() => self.send(Display(!self.state.show))}
               layout={...defaultLayout, flex: 1}
             />
             <view>
-              (Pure.string(self.state.show ? "Showing" : "Hidden"))
+              {Pure.string(self.state.show ? "Showing" : "Hidden")}
             </view>
-            (
+            {
               self.state.show ?
                 <button
                   title="Show this button"
-                  onClick=(() => print_endline("Clicked"))
+                  onClick={() => print_endline("Clicked")}
                   layout={...defaultLayout, flex: 1}
                 /> :
                 Pure.nil
-            )
+            }
           </view>
-        </window>
+        </window>,
     });
 };
 
-PureMacOS.render(<Test />);
+PureMacOS.render(<Sample.Flex />);

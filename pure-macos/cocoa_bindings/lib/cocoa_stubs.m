@@ -146,6 +146,8 @@ CAMLprim value ml_NSWindow_windowWithContentRect (value winId, value rect_v)
                                                 backing:NSBackingStoreBuffered
                                                   defer:NO];
   [win setDelegate:[[MLWindowDelegate alloc] initWithId:winId]];
+  View *view = [[View alloc] initWithFrame: NSMakeRect (x, y, w, h) ];
+  [win setContentView: view];
 
   CAMLreturn (Val_NSWindow (win));
 }
