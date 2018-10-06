@@ -1,6 +1,5 @@
 {
   "name": "pure",
-  "ocamlfind-dependencies": ["lablgtk2"],
   "bs-dependencies": ["bs-webapi", "@glennsl/bs-jest"],
   "static-libraries": ["pure-macos/cocoa_bindings/lib/cocoa_stubs.o"],
   "c-linker-flags": ["'-framework Cocoa'"],
@@ -12,17 +11,11 @@
     },
     {
       "backend": "js",
-      "dir": "pure-dom/__tests__",
-      "type": "dev"
+      "dir": "pure-dom/__tests__"
     },
     {
       "backend": ["native", "bytecode"],
       "dir": "pure-macos",
-      "subdirs": true
-    },
-    {
-      "backend": ["native", "bytecode"],
-      "dir": "pure-gtk",
       "subdirs": true
     },
     {
@@ -38,14 +31,6 @@
     {
       "backend": "native",
       "main-module": "MainMacOS"
-    },
-    {
-      "backend": "bytecode",
-      "main-module": "MainGTK"
-    },
-    {
-      "backend": "native",
-      "main-module": "MainGTK"
     },
     {
       "backend": "js",

@@ -1,1 +1,0 @@
-PureGTK.render(<Sample.Test />);

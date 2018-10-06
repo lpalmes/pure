@@ -19,6 +19,6 @@
   "devDependencies": {
     "@glennsl/bs-jest": "git+https://github.com/lpalmes/bs-jest",
     "jest": "^23.5.0",
-    "parcel-bundler": "^1.9.7"
+    "parcel-bundler": "^1.10.2"
   }
 }
