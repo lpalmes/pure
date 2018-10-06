@@ -930,15 +930,15 @@ browserslist@^4.0.0:
     electron-to-chromium "^1.3.62"
     node-releases "^1.0.0-alpha.11"
 
-bs-platform@bsansouci/bsb-native#3.2.0:
-  version "3.2.0"
-  resolved "https://codeload.github.com/bsansouci/bsb-native/tar.gz/84604c9f6a5611eed68372efdb575c00a3e72813"
-  dependencies:
-    yauzl "^2.9.1"
-
 "bs-webapi@git+https://github.com/lpalmes/bs-webapi-incubator#patch-1":
   version "0.9.1"
   resolved "git+https://github.com/lpalmes/bs-webapi-incubator#82c9504e5d5abf51ba49f5c6258190661b555111"
+
+bsb-native@^4.0.6:
+  version "4.0.6"
+  resolved "https://registry.yarnpkg.com/bsb-native/-/bsb-native-4.0.6.tgz#5c0289e24e0a3375ebf8f69a17510b884cace1ca"
+  dependencies:
+    yauzl "^2.9.1"
 
 bser@^2.0.0:
   version "2.0.0"

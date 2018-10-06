@@ -3,7 +3,7 @@
   "scripts": {
     "start": "bsb -w",
     "run-app": "bsb -make-world -backend bytecode; ./lib/bs/bytecode/mainmacos.byte",
-    "start:js": "bsb -backend js -w",
+    "start:js": "bsb -make-world -backend js -w",
     "build:js": "bsb -make-world -backend js",
     "test:js": "jest",
     "start:native": "bsb -backend native -w",
@@ -13,8 +13,8 @@
     "bundle": "parcel ./pure-dom/index.html"
   },
   "dependencies": {
-    "bs-platform": "bsansouci/bsb-native#3.2.0",
-    "bs-webapi": "git+https://github.com/lpalmes/bs-webapi-incubator#patch-1"
+    "bs-webapi": "git+https://github.com/lpalmes/bs-webapi-incubator#patch-1",
+    "bsb-native": "^4.0.6"
   },
   "devDependencies": {
     "@glennsl/bs-jest": "git+https://github.com/lpalmes/bs-jest",
