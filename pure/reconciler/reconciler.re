@@ -68,6 +68,7 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
               tag:
                 switch (elm) {
                 | Flat(Component(_)) => Component
+                | Flat(List(_)) => Host
                 | Flat(String(_)) => Host
                 | Flat(Nil) => Host
                 | Nested(_, _, _) => Host
@@ -125,7 +126,8 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
             | Update(state) => Some(Obj.magic(state))
             }
           );
-          updateQueue := updateQueue^ @ [Component({fiber: Fiber(fiber)})];
+          updateQueue :=
+            updateQueue^ @ [ComponentUpdate({fiber: Fiber(fiber)})];
           globalWorker.work();
         },
       }
@@ -144,7 +146,7 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
       reconcileChildrenArray(Fiber(wipFiber), [element]);
     | _ => ()
     };
-  let updateHost = (Fiber(wipFiber)) =>
+  let updateHost = (Fiber(wipFiber) as fiber) =>
     switch (wipFiber.fiberType) {
     | Some(Nested(_, _, elements) as element) =>
       switch (wipFiber.stateNode) {
@@ -153,7 +155,8 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
         wipFiber.stateNode = Some(node);
       | Some(_) => ()
       };
-      reconcileChildrenArray(Fiber(wipFiber), elements);
+      reconcileChildrenArray(fiber, elements);
+    | Some(Flat(List(elements))) => reconcileChildrenArray(fiber, elements)
     | Some(Flat(String(value))) =>
       switch (wipFiber.stateNode) {
       | None =>
@@ -166,17 +169,17 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
     | None => ()
     };
 
-  let updateHostRoot = (Fiber(wipFiber)) =>
-  switch wipFiber.fiberType {
-  | Some(element) => reconcileChildrenArray(Fiber(wipFiber), [element]);
-  | None => assert(false) 
-  };
+  let updateHostRoot = (Fiber(wipFiber) as fiber) =>
+    switch (wipFiber.fiberType) {
+    | Some(element) => reconcileChildrenArray(fiber, [element])
+    | None => assert(false)
+    };
 
-  let beginWork = (Fiber(wipFiber)) =>
+  let beginWork = (Fiber(wipFiber) as fiber) =>
     switch (wipFiber.tag) {
-    | Host => updateHost(Fiber(wipFiber))
-    | HostRoot => updateHostRoot(Fiber(wipFiber))
-    | Component => updateComponent(Fiber(wipFiber))
+    | Host => updateHost(fiber)
+    | HostRoot => updateHostRoot(fiber)
+    | Component => updateComponent(fiber)
     };
   let commitDeletion = (fiber, domParent) => {
     let node = ref(Some(fiber));
@@ -184,7 +187,9 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
     while (break^ == false) {
       switch (node^) {
       | Some(Fiber({tag: Component, child})) => node := child
-      | Some(Fiber({stateNode: Some(domNode), sibling}) as fiberNode) =>
+      | Some(Fiber({fiberType: Some(Flat(List(_))), child})) =>
+        node := child
+      | Some(Fiber({stateNode: Some(domNode), sibling})) =>
         Config.removeChild(domParent, domNode);
         let internalBreak = ref(false);
         while (internalBreak^ == false) {
@@ -213,6 +218,11 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
       | None => ()
       | Some(Fiber(parent)) =>
         let parentFiber = ref(parent);
+        switch (parent) {
+        | {fiberType: Some(Flat(List(_))), parent: Some(Fiber(p))} =>
+          parentFiber := Obj.magic(p)
+        | _ => ()
+        };
         while (parentFiber.contents.tag == Component) {
           switch (parentFiber.contents.parent) {
           | Some(Fiber(p)) => parentFiber := Obj.magic(p)
@@ -233,7 +243,8 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
             | {
                 fiberType: Some(Nested(_, props, _)),
                 stateNode: Some(node),
-                alternate: Some(Fiber({fiberType: Some(Nested(_, oldProps, _))})),
+                alternate:
+                  Some(Fiber({fiberType: Some(Nested(_, oldProps, _))})),
               } =>
               Config.commitUpdate(node, Some(oldProps), props)
             | {
@@ -312,7 +323,7 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
       | [] => None
       };
     switch (update) {
-    | Some(HostRoot(update)) =>
+    | Some(HostRootUpdate(update)) =>
       nextUnitOfWork :=
         Some(
           Fiber({
@@ -328,7 +339,7 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
             stateNode: update.node,
           }),
         )
-    | Some(Component({fiber: Fiber(fiber)})) =>
+    | Some(ComponentUpdate({fiber: Fiber(fiber)})) =>
       let rootFiber = getRoot(fiber);
       nextUnitOfWork :=
         Some(

@@ -38,10 +38,11 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
         switch (t) {
         | Component({debugName}) => debugName
         | String(text) => "Text(" ++ text ++ ")"
+        | List(list) => "List of elements"
         | Nil => "nil"
         }
       )
-      | None => "No pure element"
+    | None => "No pure element"
     };
   let printEffects = effects =>
     List.iter(

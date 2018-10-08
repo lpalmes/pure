@@ -17,16 +17,16 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
     alternate: option(opaqueFiber),
     mutable effectTag: option(effectTag),
     mutable stateNode: option(Config.hostNode),
-    mutable effects: list(opaqueFiber)
+    mutable effects: list(opaqueFiber),
   }
   and opaqueFiber =
     | Fiber(fiber('state)): opaqueFiber;
   type fiberUpdateHost = {
     node: option(Config.hostNode),
-    children: Pure.pureElement
+    children: Pure.pureElement,
   };
   type fiberUpdateComponent = {fiber: opaqueFiber};
   type fiberUpdate =
-    | HostRoot(fiberUpdateHost)
-    | Component(fiberUpdateComponent);
+    | HostRootUpdate(fiberUpdateHost)
+    | ComponentUpdate(fiberUpdateComponent);
 };

@@ -3,11 +3,12 @@ open Pure;
 module Host: ReconcilerSpec.HostConfig = {
   type hostNode = Dom.element;
   let createInstance = element =>
-    switch element {
+    switch (element) {
     | Nested(primitive, props, _) =>
       let name =
-        switch primitive {
-        | View => "div"
+        switch (primitive) {
+        | View
+        | Window => "div"
         | Text => "span"
         | Button => "button"
         };
@@ -19,7 +20,7 @@ module Host: ReconcilerSpec.HostConfig = {
       | _ => ()
       };
       node;
-    | _ => assert false
+    | _ => assert(false)
     };
   let createTextInstance = value => {
     let node = Webapi.Dom.Document.createTextNode(value, Webapi.Dom.document);
@@ -39,6 +40,6 @@ module DOMReconciler = Reconciler.Make(Host);
 
 let render = (pureElement: pureElement, container: Host.hostNode) => {
   DOMReconciler.updateQueue :=
-    [HostRoot({node: Some(container), children: pureElement})];
+    [HostRootUpdate({node: Some(container), children: pureElement})];
   DOMReconciler.perfomWork();
 };

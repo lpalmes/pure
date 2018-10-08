@@ -80,21 +80,35 @@ module Test = {
         },
       render: self =>
         <view layout={...defaultLayout, flex: 1}>
-          <button
-            title="Click me"
-            onClick={() => self.send(Display(!self.state.show))}
-            layout={...defaultLayout, flex: 1}
-          />
-          <view> {Pure.string(self.state.show ? "Showing" : "Hidden")} </view>
-          {
-            self.state.show ?
-              <button
-                title="Show this cool button"
-                onClick={() => print_endline("Clicked")}
-                layout={...defaultLayout, flex: 1}
-              /> :
-              Pure.nil
-          }
+          <view>
+            <button
+              title="Click me"
+              onClick={() => self.send(Display(!self.state.show))}
+              layout={...defaultLayout, flex: 1}
+            />
+            <view>
+              {Pure.string(self.state.show ? "Showing" : "Hidden")}
+            </view>
+            <button
+              title="Show this cool button"
+              onClick={() => print_endline("Clicked")}
+              layout={...defaultLayout, flex: 1}
+            />
+          </view>
+          <view>
+            {
+              self.state.show ?
+                <>
+                  <view> {Pure.string("Hello my friend")} </view>
+                  <view> {Pure.string("Hello again my friend")} </view>
+                  <view> {Pure.string("You again my friend")} </view>
+                </>
+                |> Pure.list :
+                <button onClick={() => print_endline("What's up my friend")}>
+                  {Pure.string("Another button :)")}
+                </button>
+            }
+          </view>
         </view>,
     });
 };

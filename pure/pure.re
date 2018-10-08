@@ -50,6 +50,7 @@ and self('state, 'action) = {
 type element =
   | String(string)
   | Component(component('state, 'action)): element
+  | List(list(pureElement))
   | Nil
 and pureElement =
   | Flat(element)
@@ -82,9 +83,9 @@ let reducerComponent = debugName => basicComponent(debugName);
 
 let string = value => Flat(String(value));
 
-/* let list = value => Nested("div", defaultProps, value);
+let list = value => Flat(List(value));
 
-   let array = value => Nested("div", defaultProps, Belt.List.fromArray(value)); */
+let array = value => Flat(List(Belt.List.fromArray(value)));
 let null = Flat(Nil);
 
 let nil = Flat(Nil);

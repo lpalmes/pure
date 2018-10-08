@@ -7,11 +7,8 @@
     { "dir": "pure", "subdirs": true },
     {
       "backend": "js",
-      "dir": "pure-dom"
-    },
-    {
-      "backend": "js",
-      "dir": "pure-dom/__tests__"
+      "dir": "pure-dom",
+      "subdirs": true
     },
     {
       "backend": ["native", "bytecode"],
