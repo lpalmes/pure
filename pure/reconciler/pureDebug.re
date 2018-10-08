@@ -38,7 +38,7 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
         switch (t) {
         | Component({debugName}) => debugName
         | String(text) => "Text(" ++ text ++ ")"
-        | List(list) => "List of elements"
+        | List(_) => "List of elements"
         | Nil => "nil"
         }
       )

@@ -126,7 +126,7 @@ let render = (pureElement: pureElement) => {
   app#applicationWillFinishLaunching(() => {
     MacOSReconciler.updateQueue :=
       MacOSReconciler.updateQueue^
-      @ [HostRoot({node: None, children: pureElement})];
+      @ [HostRootUpdate({node: None, children: pureElement})];
     MacOSReconciler.perfomWork();
   });
   app#run;

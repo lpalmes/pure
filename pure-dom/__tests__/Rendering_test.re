@@ -68,6 +68,32 @@ describe("Rendering", () => {
     let inner = Element.innerHTML(container^);
     expect(inner) |> toBe("<div><button></button></div>");
   });
+
+  test("Should render a list", () => {
+    PureDom.render(
+      Pure.list(<> <button /> <view /> </>),
+      Obj.magic(container.contents),
+    );
+    let inner = Element.innerHTML(container^);
+    expect(inner) |> toBe("<button></button><div></div>");
+  });
+
+  test("Should reconciler a list", () => {
+    PureDom.render(
+      Pure.list(<> <button /> <view /> </>),
+      Obj.magic(container.contents),
+    );
+    PureDom.render(
+      Pure.list(<> <view /> <button /> </>),
+      Obj.magic(container.contents),
+    );
+    PureDom.render(
+      Pure.list(<> <button /> <view /> </>),
+      Obj.magic(container.contents),
+    );
+    let inner = Element.innerHTML(container^);
+    expect(inner) |> toBe("<button></button><div></div>");
+  });
 });
 
 describe("Expect", () =>
