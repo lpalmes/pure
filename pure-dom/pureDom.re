@@ -16,13 +16,13 @@ module Host: ReconcilerSpec.HostConfig = {
       PureDomProps.reconcile(node, None, props);
       switch (primitive, props.title) {
       | (Button, Some(value)) =>
-        Webapi.Dom.Document.setTextContent(Obj.magic(node), value)
+        Webapi.Dom.Element.setTextContent(node, value)
       | _ => ()
       };
       node;
     | _ => assert(false)
     };
-  let createTextInstance = value => {
+  let createTextInstance = value: hostNode => {
     let node = Webapi.Dom.Document.createTextNode(value, Webapi.Dom.document);
     Webapi.Dom.Text.setNodeValue(node, Js.Null.return(value));
     Obj.magic(node);

@@ -14,7 +14,7 @@ type nsButton;
 type subView = {. addSubview: subView => unit};
 
 module NSView = {
-  external make: nsRect => nsView = "ml_NSViewWithContentRect";
+  [@noalloc] external make: nsRect => nsView = "ml_NSViewWithContentRect";
   external setRect: (nsView, nsRect) => unit = "ml_NSViewSetContentRect";
   external getRect: nsView => nsRect = "ml_NSViewGetContentRect";
   external addSubview: (nsView, nsView) => unit = "ml_NSViewAddSubview";
@@ -35,8 +35,10 @@ module NSView = {
 };
 
 module NSButton = {
-  external make: nsRect => nsButton = "ml_NSButtonWithContentRect";
+  [@noalloc] external make: nsRect => nsButton = "ml_NSButtonWithContentRect";
+  [@noalloc]
   external setTitle: (nsButton, string) => unit = "ml_NSButtonSetTitle";
+  [@noalloc]
   external setCallback: (nsButton, unit => unit) => unit =
     "Button_setCallback";
 };

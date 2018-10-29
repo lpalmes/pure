@@ -16,7 +16,7 @@ The structure is similar to react:
 
 - **pure:** this is cross platform code between native and js. Includes the reconciler and layout (flex)
 - **pure-dom:** the dom/web render using the reconciler above
-- **pure-macoos:** the native render using the same reconciler. This has a MacOS render for now, but a Linux and Windows is in the works.
+- **pure-macos:** the native render using the same reconciler. This has a MacOS render for now, but a Linux and Windows is in the works.
 
 ## Take it for a spin
 

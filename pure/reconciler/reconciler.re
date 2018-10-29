@@ -1,10 +1,85 @@
 open Pure;
 
-module Make = (Config: ReconcilerSpec.HostConfig) => {
-  module FiberTypes = FiberTypes.Make(Config);
-  module Layout = ReconcilerLayout.Make(Config);
-  module Debug = PureDebug.Make(Config);
-  open FiberTypes;
+module type HostConfig = {
+  type hostNode;
+  let createInstance: Pure.pureElement => hostNode;
+  let createTextInstance: string => hostNode;
+  let commitUpdate: (hostNode, option(Pure.props), Pure.props) => unit;
+  let appendChild: (hostNode, hostNode) => unit;
+  let removeChild: (hostNode, hostNode) => unit;
+};
+module type Middleware = {
+  type node;
+  let apply: node => unit;
+  let createNode: unit => option(node);
+};
+
+/* module rec HostConfig: {
+     type hostNode;
+     let createInstance: Pure.pureElement => hostNode;
+     let createTextInstance: string => hostNode;
+     let commitUpdate: (hostNode, option(Pure.props), Pure.props) => unit;
+     let appendChild: (hostNode, hostNode) => unit;
+     let removeChild: (hostNode, hostNode) => unit;
+   }
+   and Middleware: {
+     type node;
+     let apply: (HostConfig.hostNode, node) => unit;
+     let createNode: unit => option(node);
+   }   */
+
+module Spec = {
+  module type HostConfig = {
+    type hostNode;
+    let createInstance: Pure.pureElement => hostNode;
+    let createTextInstance: string => hostNode;
+    let commitUpdate: (hostNode, option(Pure.props), Pure.props) => unit;
+    let appendChild: (hostNode, hostNode) => unit;
+    let removeChild: (hostNode, hostNode) => unit;
+  };
+
+  module type Middleware = {
+    type node;
+    type hostNode;
+    let apply: node => unit;
+    let createNode: hostNode => option(node);
+  };
+};
+
+module Make = (Config: Spec.HostConfig) => {
+  type fiberTag =
+    | Host
+    | Component
+    | HostRoot;
+  type effectTag =
+    | Placement
+    | Deletion
+    | Update;
+  type fiber('state) = {
+    tag: fiberTag,
+    fiberType: option(Pure.pureElement),
+    parent: option(opaqueFiber),
+    mutable state: option('state),
+    mutable child: option(opaqueFiber),
+    mutable sibling: option(opaqueFiber),
+    alternate: option(opaqueFiber),
+    mutable effectTag: option(effectTag),
+    mutable stateNode: option(Config.hostNode),
+    mutable effects: list(opaqueFiber),
+    /* middlewareNode: option(Middleware.node), */
+  }
+  and opaqueFiber =
+    | Fiber(fiber('state)): opaqueFiber;
+  type fiberUpdateHost = {
+    node: option(Config.hostNode),
+    children: Pure.pureElement,
+  };
+  type fiberUpdateComponent = {fiber: opaqueFiber};
+  type fiberUpdate =
+    | HostRootUpdate(fiberUpdateHost)
+    | ComponentUpdate(fiberUpdateComponent);
+
+  /* module Debug = PureDebug.Make(Config, Middleware); */
   let updateQueue: ref(list(fiberUpdate)) = ref([]);
   let nextUnitOfWork: ref(option(opaqueFiber)) = ref(None);
   let fiberRoot: ref(option(opaqueFiber)) = ref(None);
@@ -53,6 +128,7 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
                   effectTag: Some(Update),
                   effects: [],
                   stateNode: oldFiber.stateNode,
+                  /* middlewareNode: None, */
                 }),
               );
           };
@@ -82,6 +158,7 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
               effectTag: Some(Placement),
               effects: [],
               stateNode: None,
+              /* middlewareNode: None, */
             }),
           )
       | _ => ()
@@ -266,6 +343,7 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
     nextUnitOfWork := None;
     pendingCommit := None;
     fiberRoot := Some(Fiber(fiber));
+    /* Middleware.apply(Obj.magic(fiber)); */
   };
   let completeWork = fiber =>
     switch (fiber.parent) {
@@ -337,6 +415,7 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
             effectTag: None,
             effects: [],
             stateNode: update.node,
+            /* middlewareNode: None, */
           }),
         )
     | Some(ComponentUpdate({fiber: Fiber(fiber)})) =>
@@ -354,16 +433,12 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
             effectTag: None,
             effects: [],
             stateNode: rootFiber.stateNode,
+            /* middlewareNode: None, */
           }),
         );
     | None => ()
     };
   };
-  let perfomLayout = (width, height) =>
-    switch (fiberRoot^) {
-    | Some(Fiber({child: Some(f)})) => Layout.layout(f, width, height)
-    | _ => ()
-    };
 
   let rec countAlternateFibers = (Fiber(fiber), count) =>
     switch (fiber.alternate) {
@@ -385,9 +460,7 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
         );
     };
     switch (pendingCommit^) {
-    | Some(Fiber(pendingCommit)) =>
-      commitAllWork(pendingCommit);
-      perfomLayout(400, 400);
+    | Some(Fiber(pendingCommit)) => commitAllWork(pendingCommit)
     | None => ()
     };
   };
@@ -416,4 +489,16 @@ module Make = (Config: ReconcilerSpec.HostConfig) => {
   };
 
   globalWorker.work = perfomWork;
+
+  let renderWithRoot = (element, rootNode) => {
+    updateQueue :=
+      updateQueue^
+      @ [HostRootUpdate({node: Some(rootNode), children: element})];
+    perfomWork();
+  };
+  let render = element => {
+    updateQueue :=
+      updateQueue^ @ [HostRootUpdate({node: None, children: element})];
+    perfomWork();
+  };
 };

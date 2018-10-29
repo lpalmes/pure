@@ -1,12 +1,12 @@
 {
   "name": "pure",
   "scripts": {
-    "start": "bsb -w",
-    "run-app": "bsb -make-world -backend bytecode; ./lib/bs/bytecode/mainmacos.byte",
+    "start": "bsb -make-world -backend bytecode -w",
+    "start:native": "bsb -backend native -w",
     "start:js": "bsb -make-world -backend js -w",
+    "run-app": "bsb -make-world -backend bytecode; ./lib/bs/bytecode/mainmacos.byte",
     "build:js": "bsb -make-world -backend js",
     "test:js": "jest",
-    "start:native": "bsb -backend native -w",
     "build:bytecode": "bsb -make-world -backend bytecode",
     "build:native": "bsb -make-world -backend native",
     "clean": "bsb -clean-world",

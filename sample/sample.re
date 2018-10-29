@@ -112,3 +112,51 @@ module Test = {
         </view>,
     });
 };
+
+module ListTest = {
+  type state = {elements: list(int)};
+  type action =
+    | Add;
+  let createElement = (~children as _, _) =>
+    Pure.element({
+      ...Pure.reducerComponent("Test"),
+      initialState: () => {elements: [1, 2, 3]},
+      reducer: (action, state) =>
+        switch (action) {
+        | Add =>
+          Pure.Update({
+            elements:
+              List.append(
+                state.elements,
+                [List.length(state.elements) + 1],
+              ),
+          })
+        },
+      render: self =>
+        <window layout={...defaultLayout, flex: 1}>
+          <view layout={...defaultLayout, flex: 1}>
+            <button
+              title="Add elements"
+              onClick={() => self.send(Add)}
+              layout={...defaultLayout, flex: 1}
+            />
+            {
+              self.state.elements
+              |> List.map(i =>
+                   <button
+                     title={"Show button " ++ string_of_int(i)}
+                     onClick={() => i |> string_of_int |> print_endline}
+                     layout={
+                       ...defaultLayout,
+                       top: 20,
+                       height: 100,
+                       width: 200,
+                     }
+                   />
+                 )
+              |> Pure.list
+            }
+          </view>
+        </window>,
+    });
+};

@@ -6,6 +6,7 @@
   "ppx-flags": ["PurePpx"],
   "sources": [
     { "dir": "pure", "subdirs": true },
+    { "dir": "pure-noop", "subdirs": true },
     {
       "type": "ppx",
       "dir": "pure-ppx"
@@ -30,6 +31,14 @@
       "type": "ppx",
       "backend": "native",
       "main-module": "PurePpx"
+    },
+    {
+      "backend": "bytecode",
+      "main-module": "PureNoop"
+    },
+    {
+      "backend": "bytecode",
+      "main-module": "MainMacS"
     },
     {
       "backend": "bytecode",
