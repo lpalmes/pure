@@ -38,10 +38,6 @@
     },
     {
       "backend": "bytecode",
-      "main-module": "MainMacS"
-    },
-    {
-      "backend": "bytecode",
       "main-module": "MainMacOS"
     },
     {

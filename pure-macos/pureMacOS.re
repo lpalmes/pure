@@ -17,9 +17,9 @@ let layout: ref((LayoutTypes.unitOfM, LayoutTypes.unitOfM) => unit) =
   ref((w, h) => print_endline("the layout function has not been replaced"));
 
 module Node = {
-  type context = hostNative;
+  type context = hostNativeView;
   /* Ignored - only needed to create the dummy instance. */
-  let nullContext = View(Cocoa.NSView.make((0., 0., 0., 0.)));
+  let nullContext = (View(Cocoa.NSView.make((0., 0., 0., 0.))), 0);
 };
 
 module PureLayout = Layout.Create(Node, FixedEncoding);
@@ -42,7 +42,7 @@ let layoutRoot = {
       PureLayout.LayoutSupport.createNode(
         ~withChildren=[||],
         ~andStyle=LayoutSupport.defaultStyle,
-        View(Cocoa.NSView.make((0., 0., 0., 0.))),
+        (View(Cocoa.NSView.make((0., 0., 0., 0.))), 0),
       ),
     id: 0,
   },
@@ -56,12 +56,14 @@ let appendChildNode =
     ) => {
   open PureLayout.LayoutSupport;
   open LayoutTypes;
+  print_endline("Appending child node to layout");
   assert(child.parent === theNullNode);
   assert(node.measure === None);
   node.children = Array.append(node.children, [|child|]);
   node.childrenCount = node.childrenCount + 1;
   child.parent = node;
   PureLayout.LayoutSupport.markDirtyInternal(node);
+  print_endline("Children Appended");
 };
 
 module Host: Reconciler.Spec.HostConfig = {
@@ -97,7 +99,7 @@ module Host: Reconciler.Spec.HostConfig = {
           | Window =>
             let w = NSWindow.windowWithContentRect(0, (0., 0., 400., 400.));
             NSWindow.center(w);
-            NSWindow.setMinSize(w, (400., 400.));
+            /* NSWindow.setMinSize(w, (400., 400.)); */
             NSWindow.makeKeyAndOrderFront(w);
             NSWindow.windowDidResize(() => {
               let contentView = NSWindow.getContentView(w);
@@ -126,7 +128,7 @@ module Host: Reconciler.Spec.HostConfig = {
           PureLayout.LayoutSupport.createNode(
             ~withChildren=[||],
             ~andStyle=layout,
-            v,
+            (v, globalId.contents),
           );
         };
         (v, node);
@@ -148,13 +150,13 @@ module Host: Reconciler.Spec.HostConfig = {
     print_endline("Creating text instance");
     let v = View(NSView.make((0., 0., 100., 100.)));
     globalId := globalId.contents + 1;
+    let id = globalId^;
     let node =
       PureLayout.LayoutSupport.createNode(
         ~withChildren=[||],
         ~andStyle=LayoutSupport.defaultStyle,
-        v,
+        (v, id),
       );
-    let id = globalId^;
     layoutRoot.orphanNodes = [(id, node), ...layoutRoot.orphanNodes];
     (v, globalId.contents);
   };
@@ -190,12 +192,18 @@ module Host: Reconciler.Spec.HostConfig = {
       List.find(((id, _)) => id == parentId, layoutRoot.orphanNodes);
     let (_, childLayoutNode) =
       List.find(((id, _)) => id == nodeId, layoutRoot.orphanNodes);
+
+    Array.length(parentLayoutNode.children) |> string_of_int |> print_endline;
     parentLayoutNode.children =
       parentLayoutNode.children
       |> Array.to_list
-      |> List.filter(n => n === childLayoutNode)
+      |> List.filter((node: PureLayout.LayoutSupport.NodeType.node) => {
+           let (_, id) = node.context;
+           id != nodeId;
+         })
       |> Array.of_list;
     parentLayoutNode.childrenCount = parentLayoutNode.childrenCount - 1;
+    Array.length(parentLayoutNode.children) |> string_of_int |> print_endline;
   };
   let commitUpdate = ((node, nodeId), oldProps, props) => {
     print_endline("Commiting and update");
@@ -227,9 +235,10 @@ let rec applyLayout = (node: PureLayout.LayoutSupport.NodeType.node) => {
   let width = node.layout.width |> float_of_int;
   let height = node.layout.height |> float_of_int;
 
+  let (v, _) = node.context;
   "Applying layout: "
   ++ (
-    switch (node.context) {
+    switch (v) {
     | View(_) => "View"
     | Button(_) => "Button"
     | Window(_) => "Window"
@@ -238,7 +247,7 @@ let rec applyLayout = (node: PureLayout.LayoutSupport.NodeType.node) => {
   |> print_endline;
 
   let view =
-    switch (node.context) {
+    switch (v) {
     | View(v) => v
     | Button(v) => Obj.magic(v)
     | Window(w) => w |> NSWindow.getContentView
@@ -264,7 +273,7 @@ let render = (pureElement: pureElement) => {
   let app = Lazy.force(NSApplication.app);
   app#applicationWillFinishLaunching(() => {
     MacOSReconciler.render(pureElement);
-    perfomLayout(200, 200);
+    perfomLayout(600, 400);
   });
   app#run;
 };
