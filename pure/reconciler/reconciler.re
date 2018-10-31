@@ -36,6 +36,8 @@ module Spec = {
     let commitUpdate: (hostNode, option(Pure.props), Pure.props) => unit;
     let appendChild: (hostNode, hostNode) => unit;
     let removeChild: (hostNode, hostNode) => unit;
+
+    let afterCommit: unit => unit;
   };
 
   module type Middleware = {
@@ -343,6 +345,7 @@ module Make = (Config: Spec.HostConfig) => {
     nextUnitOfWork := None;
     pendingCommit := None;
     fiberRoot := Some(Fiber(fiber));
+    Config.afterCommit();
     /* Middleware.apply(Obj.magic(fiber)); */
   };
   let completeWork = fiber =>

@@ -127,8 +127,12 @@ enum {
 
 #define Val_NSWindow(v) ((value)(v))
 #define NSWindow_val(v) ((NSWindow *)(v))
-#define Val_NSView(v) ((value)(v))
-#define NSView_val(v) ((View *)(v))
+
+#define Val_View(v) ((value)(v))
+#define View_val(v) ((__bridge View *)(value)(v))
+
+#define Val_Button(v) ((value)(v))
+#define Button_val(v) ((__bridge Button *)(value)(v))
 
 CAMLprim value ml_NSWindow_windowWithContentRect (value winId, value rect_v)
 {
@@ -244,14 +248,14 @@ CAMLprim value ml_NSViewWithContentRect (value rect_v)
   View *view = [[View alloc] initWithFrame: contentRect];
 
 
-  CAMLreturn (Val_NSView (view));
+  CAMLreturn (Val_View (view));
 }
 
 CAMLprim value View_setBackgroundColor(value view_v, value red_v, value green_v, value blue_v, value alpha_v)
 {
   CAMLparam5(view_v, red_v, blue_v, green_v, alpha_v);
 
-  View *view = NSView_val(view_v);
+  View *view = View_val(view_v);
 
   CGFloat red = Double_val(red_v) / 255;
   CGFloat blue = Double_val(blue_v) / 255;
@@ -266,7 +270,7 @@ CAMLprim value View_setBackgroundColor(value view_v, value red_v, value green_v,
 
 // CAMLprim value View_setBackgroundColor(value view, double red, double green, double blue, double alpha) {
 //   CAMLparam1 (view);
-//   View *nsView = NSView_val (view);
+//   View *nsView = View_val (view);
 
 //   NSLog(@"Red: %f Green: %f Blue: %f Alpha: %f", red, green, blue, alpha);
 //   [nsView setWantsLayer:true];
@@ -287,7 +291,7 @@ CAMLprim value ml_NSViewSetContentRect (value view, value rect_v)
   CGFloat y = Double_val (Field (rect_v, 1));
   CGFloat w = Double_val (Field (rect_v, 2));
   CGFloat h = Double_val (Field (rect_v, 3));
-  View *nsView = NSView_val (view);
+  View *nsView = View_val (view);
 
   NSRect contentRect = NSMakeRect (x, y, w, h);
   [nsView setFrame:contentRect];
@@ -297,13 +301,13 @@ CAMLprim value ml_NSViewSetContentRect (value view, value rect_v)
 
 CAMLprim value ml_NSViewGetWidth (value view) {
   CAMLparam1 (view);
-  View *nsView = NSView_val (view);
+  View *nsView = View_val (view);
   CAMLreturn(caml_copy_double(nsView.frame.size.width));
 }
 
 CAMLprim value ml_NSViewGetHeight (value view) {
   CAMLparam1 (view);
-  View *nsView = NSView_val (view);
+  View *nsView = View_val (view);
   CAMLreturn(caml_copy_double(nsView.frame.size.height));
 }
 
@@ -311,7 +315,7 @@ CAMLprim value ml_NSViewGetContentRect (value view)
 {
   CAMLparam1 (view);
   CAMLlocal1 (rect);
-  View *nsView = NSView_val (view);
+  View *nsView = View_val (view);
   rect = caml_alloc_small(4, 0);
 
   double x = nsView.frame.origin.x;
@@ -332,8 +336,8 @@ CAMLprim value ml_NSViewGetContentRect (value view)
 CAMLprim value ml_NSViewAddSubview (value viewA, value viewB)
 {
   CAMLparam2 (viewA, viewB);
-  View *view1 = NSView_val (viewA);
-  View *view2 = NSView_val (viewB);
+  View *view1 = View_val (viewA);
+  View *view2 = View_val (viewB);
   [view1 addSubview: view2];
   CAMLreturn (Val_unit);
 }
@@ -341,7 +345,7 @@ CAMLprim value ml_NSViewAddSubview (value viewA, value viewB)
 CAMLprim value ml_NSViewRemoveFromSuperview (value view_v)
 {
   CAMLparam1 (view_v);
-  View *view = NSView_val (view_v);
+  View *view = View_val (view_v);
   [view removeFromSuperview];
   CAMLreturn (Val_unit);
 }
@@ -351,14 +355,14 @@ CAMLprim value ml_NSWindowGetContentView (value win_v)
 {
   CAMLparam1 (win_v);
   NSWindow *win = NSWindow_val (win_v);
-  CAMLreturn (Val_NSView (win.contentView));
+  CAMLreturn (Val_View (win.contentView));
 }
 
 CAMLprim value ml_NSWindowAddSubview (value win_v, value view_v)
 {
   CAMLparam2 (win_v, view_v);
   NSWindow *win = NSWindow_val (win_v);
-  View *view = NSView_val (view_v);
+  View *view = View_val (view_v);
   [win.contentView addSubview: view];
   CAMLreturn (Val_unit);
 }
@@ -388,18 +392,8 @@ typedef void (^ActionBlock)();
 }
 @end
 
-#define Val_View(v) ((value)(v))
-#define View_val(v) ((__bridge View *)(value)(v))
-
-#define Val_Button(v) ((value)(v))
-#define Button_val(v) ((__bridge Button *)(value)(v))
 
 dispatch_queue_t ml_q;
-
-
-
-#define Val_NSButton(v) ((value)(v))
-#define NSButton_val(v) ((Button *)(v))
 
 CAMLprim value ml_NSButtonWithContentRect (value rect_v)
 {
@@ -415,13 +409,13 @@ CAMLprim value ml_NSButtonWithContentRect (value rect_v)
   [button setButtonType:NSButtonTypeToggle]; //Set what type button You want
   [button setBezelStyle:NSBezelStyleRounded]; //Set what style You want
 
-  CAMLreturn (Val_NSButton (button));
+  CAMLreturn (Val_Button (button));
 }
 
 CAMLprim value ml_NSButtonSetTitle (value button_v, value str_v)
 {
   CAMLparam2 (button_v, str_v);
-  Button *button = NSButton_val (button_v);
+  Button *button = Button_val (button_v);
   NSString *str = [NSString stringWithUTF8String:String_val (str_v)];
   [button setTitle:str];
   CAMLreturn (Val_unit);
@@ -442,4 +436,30 @@ CAMLprim value Button_setCallback(value btn_v, value callback_v)
   }];
 
   CAMLreturn(Val_Button(btn));
+}
+
+#define Val_ScrollView(v) ((value)(v))
+#define ScrollView_val(v) ((__bridge NSScrollView *)(value)(v))
+
+CAMLprim value ml_NSScrollViewWithContentRect (value rect_v)
+{
+  CAMLparam1 (rect_v);
+  CGFloat x = Double_val (Field (rect_v, 0));
+  CGFloat y = Double_val (Field (rect_v, 1));
+  CGFloat w = Double_val (Field (rect_v, 2));
+  CGFloat h = Double_val (Field (rect_v, 3));
+
+  NSRect contentRect = NSMakeRect (x, y, w, h);
+  NSScrollView *view = [[NSScrollView alloc] initWithFrame: contentRect];
+
+  CAMLreturn (Val_ScrollView (view));
+}
+
+CAMLprim value ml_NSScrollViewSetDocumentView (value scroll, value document)
+{
+  CAMLparam2 (scroll, document);
+  NSScrollView *scrollView = ScrollView_val (scroll);
+  View *documentView = View_val (document);
+  [scrollView setDocumentView:documentView];
+  CAMLreturn (Val_unit);
 }

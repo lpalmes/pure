@@ -18,6 +18,7 @@ type props = {
 type primitive =
   | View
   | Text
+  | ScrollView
   | Button
   | Window;
 

@@ -73,6 +73,15 @@ module NSWindow = {
   let () = Callback.register("[NSWindow delegate]", windowDelegate);
 };
 
+module NSScrollView = {
+  type nsScrollView;
+  [@noalloc]
+  external make: nsRect => nsScrollView = "ml_NSScrollViewWithContentRect";
+  [@noalloc]
+  external setDocumentView: (nsScrollView, nsView) => unit =
+    "ml_NSScrollViewSetDocumentView";
+};
+
 type nsApplication;
 
 external _NSApplication_NSApp: int => nsApplication = "ml_NSApplication_NSApp";

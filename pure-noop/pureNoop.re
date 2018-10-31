@@ -85,6 +85,8 @@ module Host: Reconciler.Spec.HostConfig = {
   let commitUpdate = (node, oldProps, props) => ();
   let appendChild = Tree.addChild;
   let removeChild = Tree.removeChild;
+
+  let afterCommit = () => print_endline("Commited");
 };
 
 module NoopReconciler = Reconciler.Make(Host);

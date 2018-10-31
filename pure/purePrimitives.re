@@ -40,5 +40,6 @@ let view = createNativeElement(View);
 let text = createNativeElement(Text);
 
 let button = createNativeElement(Button);
+let scrollView = createNativeElement(ScrollView);
 
 let window = createNativeElement(Window);
