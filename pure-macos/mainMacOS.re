@@ -22,48 +22,71 @@ module Test = {
       render: self =>
         <window layout={...defaultLayout, flex: 1}>
           <view layout={...defaultLayout, flex: 1, flexDirection: Row}>
-            <button
-              title="Add elements"
-              onClick={() => self.send(Add)}
-              layout={
-                ...defaultLayout,
-                flex: 1,
-                width: 100,
-                height: 100,
-                maxWidth: 200,
-              }
-            />
-            {
-              Array.make(1, 1)
-              |> Array.to_list
-              |> List.map(_ =>
-                   <scrollView
-                     layout={...defaultLayout, flex: 1, overflow: Scroll}>
-                     <view
-                       style={backgroundColor: Some((0., 124., 123., 1.))}
-                       layout={...defaultLayout, padding: 50}>
-                       {
-                         self.state.elements
-                         |> List.map(i =>
-                              <view
-                                layout={
-                                  ...defaultLayout,
-                                  margin: 10,
-                                  height: 200,
-                                }
-                                style={
-                                  backgroundColor:
-                                    Some((145., 124., 123., 1.)),
-                                }
-                              />
-                            )
-                         |> Pure.list
-                       }
-                     </view>
-                   </scrollView>
-                 )
-              |> Pure.list
-            }
+            <view layout={...defaultLayout, flex: 1}>
+              <button
+                title="Add tweet"
+                onClick={() => self.send(Add)}
+                layout={...defaultLayout, height: 50}
+              />
+              <button
+                title="Add column"
+                onClick={() => self.send(Add)}
+                layout={...defaultLayout, height: 50}
+              />
+            </view>
+            <scrollView
+              layout={...defaultLayout, flex: 1, overflow: Scroll, margin: 10}>
+              <view style={backgroundColor: Some((0., 124., 123., 1.))}>
+                {
+                  Array.make(20, 1)
+                  |> Array.to_list
+                  |> List.map(i =>
+                       <view
+                         layout={...defaultLayout, margin: 10, height: 50}
+                         style={
+                           backgroundColor: Some((145., 124., 123., 1.)),
+                         }
+                       />
+                     )
+                  |> Pure.list
+                }
+              </view>
+            </scrollView>
+            <scrollView
+              layout={...defaultLayout, flex: 1, overflow: Scroll, margin: 10}>
+              <view style={backgroundColor: Some((0., 124., 123., 1.))}>
+                {
+                  self.state.elements
+                  |> List.map(i =>
+                       <view
+                         layout={...defaultLayout, margin: 10, height: 50}
+                         style={
+                           backgroundColor: Some((145., 124., 123., 1.)),
+                         }
+                       />
+                     )
+                  |> Pure.list
+                }
+              </view>
+            </scrollView>
+            <scrollView
+              layout={...defaultLayout, flex: 1, overflow: Scroll, margin: 10}>
+              <view style={backgroundColor: Some((0., 124., 123., 1.))}>
+                {
+                  Array.make(7, 1)
+                  |> Array.to_list
+                  |> List.map(i =>
+                       <view
+                         layout={...defaultLayout, margin: 10, height: 50}
+                         style={
+                           backgroundColor: Some((145., 124., 123., 1.)),
+                         }
+                       />
+                     )
+                  |> Pure.list
+                }
+              </view>
+            </scrollView>
           </view>
         </window>,
     });

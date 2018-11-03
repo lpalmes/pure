@@ -82,6 +82,13 @@ module NSScrollView = {
     "ml_NSScrollViewSetDocumentView";
 };
 
+module TextView = {
+  type textView;
+  [@noalloc] external make: nsRect => textView = "ml_TextViewWithContentRect";
+  [@noalloc]
+  external setText: (textView, string) => unit = "ml_TextViewSetText";
+};
+
 type nsApplication;
 
 external _NSApplication_NSApp: int => nsApplication = "ml_NSApplication_NSApp";

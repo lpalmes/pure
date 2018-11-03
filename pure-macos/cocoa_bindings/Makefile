@@ -16,7 +16,7 @@ OCAMLCFLAGS += -pp "refmt --print binary" -I lib
 all: clean test
 
 CFLAGS = \
-	-Wextra -Wall -Werror \
+	-Wextra -Wall  \
 	-O -g -std=c99 -pedantic-errors \
 	-Wsign-compare -Wshadow
 

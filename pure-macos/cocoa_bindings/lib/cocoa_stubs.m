@@ -1,4 +1,5 @@
 #include <Cocoa/Cocoa.h>
+#import <QuartzCore/QuartzCore.h>
 
 #define CAML_NAME_SPACE
 
@@ -149,6 +150,10 @@ CAMLprim value ml_NSWindow_windowWithContentRect (value winId, value rect_v)
                                               styleMask:styleMask
                                                 backing:NSBackingStoreBuffered
                                                   defer:NO];
+
+  [win setTitleVisibility:NSWindowTitleHidden];
+  [win setTitlebarAppearsTransparent:YES];
+
   [win setDelegate:[[MLWindowDelegate alloc] initWithId:winId]];
   View *view = [[View alloc] initWithFrame: NSMakeRect (x, y, w, h) ];
   [win setContentView: view];
@@ -461,5 +466,161 @@ CAMLprim value ml_NSScrollViewSetDocumentView (value scroll, value document)
   NSScrollView *scrollView = ScrollView_val (scroll);
   View *documentView = View_val (document);
   [scrollView setDocumentView:documentView];
+  CAMLreturn (Val_unit);
+}
+
+
+
+@interface TextView : NSView
+
+@property (nonatomic, assign) NSEdgeInsets contentInset;
+@property (nonatomic, strong) NSTextStorage *textStorage;
+@property (nonatomic, assign) CGRect textFrame;
+@property (nonatomic, assign) BOOL selectable;
+
+@property (nonatomic, assign) BOOL respondsToLiveResizing;
+@end
+
+@implementation TextView
+{
+  NSTextStorage *_textStorage;
+  CAShapeLayer *_highlightLayer;
+}
+
+- (instancetype)initWithFrame:(CGRect)frame
+{
+  if ((self = [super initWithFrame:frame])) {
+    _textStorage = [NSTextStorage new];
+  }
+  return self;
+}
+
+- (BOOL)isFlipped
+{
+  return YES;
+}
+
+- (NSString *)description
+{
+  NSString *superDescription = super.description;
+  return superDescription;
+}
+
+- (void)reactSetInheritedBackgroundColor:(NSColor *)inheritedBackgroundColor
+{
+  if (self.wantsLayer == NO) {
+    self.wantsLayer = YES;
+  }
+  self.layer.backgroundColor = [inheritedBackgroundColor CGColor];
+}
+
+- (void)setTextStorage:(NSTextStorage *)textStorage
+{
+  if (_textStorage != textStorage) {
+    _textStorage = textStorage;
+    [self setNeedsDisplay:YES];
+  }
+}
+
+- (void)drawRect:(CGRect)dirtyRect
+{
+  NSLayoutManager *layoutManager = [_textStorage.layoutManagers firstObject];
+  NSTextContainer *textContainer = [layoutManager.textContainers firstObject];
+                                    
+  
+  NSRange glyphRange = [layoutManager glyphRangeForTextContainer:textContainer];
+  CGRect textFrame = CGRectMake(0, 0, 200, 200);
+  [layoutManager drawBackgroundForGlyphRange:glyphRange atPoint:textFrame.origin];
+  [layoutManager drawGlyphsForGlyphRange:glyphRange atPoint:textFrame.origin];
+}
+
+- (void)viewDidMoveToWindow
+{
+  [super viewDidMoveToWindow];
+  
+  if (!self.window) {
+    self.layer.contents = nil;
+    if (_highlightLayer) {
+      [_highlightLayer removeFromSuperlayer];
+      _highlightLayer = nil;
+    }
+  } else if (_textStorage.length) {
+    [self setNeedsDisplay:YES];
+  }
+}
+
+- (BOOL)canBecomeFirstResponder
+{
+  return _selectable;
+}
+
+@end
+
+static NSTextStorage* buildTextStorageForWidth(CGFloat width, int numberOfLines, NSAttributedString *attributedString)
+{
+  
+  
+  NSLayoutManager *layoutManager = [NSLayoutManager new];
+  
+  NSTextStorage *textStorage = [[NSTextStorage alloc] initWithAttributedString: attributedString];
+  [textStorage addLayoutManager:layoutManager];
+  
+  NSTextContainer *textContainer = [NSTextContainer new];
+  textContainer.lineFragmentPadding = 0.0;
+  
+  
+  textContainer.maximumNumberOfLines = numberOfLines;
+  textContainer.size = (CGSize){
+    width,
+    CGFLOAT_MAX
+  };
+  
+  [layoutManager addTextContainer:textContainer];
+  [layoutManager ensureLayoutForTextContainer:textContainer];
+  
+  return textStorage;
+}
+
+static CGSize measureTextView(NSAttributedString *attributedString, float width, int numberOfLines)
+{
+  NSTextStorage *textStorage = buildTextStorageForWidth(width, numberOfLines, attributedString);
+//  [shadowText calculateTextFrame:textStorage];
+  NSLayoutManager *layoutManager = textStorage.layoutManagers.firstObject;
+  NSTextContainer *textContainer = layoutManager.textContainers.firstObject;
+  CGSize computedSize = [layoutManager usedRectForTextContainer:textContainer].size;
+  
+  return computedSize;
+}
+
+
+#define Val_TextView(v) ((value)(v))
+#define TextView_val(v) ((__bridge TextView *)(value)(v))
+
+CAMLprim value ml_TextViewWithContentRect (value rect_v)
+{
+  CAMLparam1 (rect_v);
+  CGFloat x = Double_val (Field (rect_v, 0));
+  CGFloat y = Double_val (Field (rect_v, 1));
+  CGFloat w = Double_val (Field (rect_v, 2));
+  CGFloat h = Double_val (Field (rect_v, 3));
+
+  NSRect contentRect = NSMakeRect (x, y, w, h);
+  TextView *view = [[TextView alloc] initWithFrame: contentRect];
+
+
+  CAMLreturn (Val_TextView (view));
+}
+
+CAMLprim value ml_TextViewSetText (value textView_v, value str_v)
+{
+  CAMLparam2 (textView_v, str_v);
+  TextView *textView = TextView_val (textView_v);
+  NSString *str = [NSString stringWithUTF8String:String_val (str_v)];
+  NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:str];
+//  NSFont *menloFont = [NSFont fontWithName:@"" size:20];
+//  [attributedString addAttribute:NSFontAttributeName value:menloFont range:NSMakeRange(0, attributedString.length)];
+  [textView setFrameSize:measureTextView(attributedString, textView.frame.size.width, 0)];
+  NSTextStorage *textStorage = buildTextStorageForWidth(textView.frame.size.width, 0, attributedString);
+  [textView setTextStorage:textStorage];
   CAMLreturn (Val_unit);
 }

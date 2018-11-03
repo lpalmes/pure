@@ -14,6 +14,14 @@ let () = {
     let contentView = NSView.make((0., 0., 400., 400. *. 3.));
     let button = NSButton.make((0., 0., 100., 100.));
     let secondButton = NSButton.make((100., 100., 100., 100.));
+    let textView = TextView.make((200., 200., 300., 200.));
+    NSView.setBackgroundColor(Obj.magic(textView), 100., 0., 200., 1.);
+    TextView.setText(
+      textView,
+      " Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque vitae vulputate nisi. Morbi ut mi luctus, efficitur dui vitae, semper sem. Fusce sagittis purus varius, ornare nisl a, pulvinar dolor. Vivamus eget lacinia magna, a fermentum nibh. Quisque eu faucibus nunc, eget varius magna. Nulla gravida id tellus in posuere. Morbi nisl ipsum, porttitor a interdum at, finibus eget quam. Nullam dapibus massa vitae nisl feugiat pulvinar. Maecenas rutrum lectus vitae aliquam suscipit. Curabitur consectetur lectus at rhoncus accumsan.
+
+    Sed in aliquet tellus. Vestibulum tempus dolor eu nisi luctus, vitae aliquet felis sodales. Sed elementum mollis justo imperdiet lobortis. Sed laoreet diam sit amet dapibus feugiat. Sed molestie, purus id porttitor pulvinar, leo libero condimentum erat, ac gravida orci augue eu felis. Proin nunc mauris, dictum vel facilisis ac, lacinia lobortis sapien. Fusce massa lorem, pellentesque sed nulla in, dapibus fringilla ipsum. Donec fringilla, libero non mattis finibus, ante ipsum malesuada metus, vel cursus ligula leo sed ex. ",
+    );
     NSButton.setTitle(button, "Click me");
     NSButton.setCallback(
       button,
@@ -32,6 +40,7 @@ let () = {
     NSView.setBackgroundColor(contentView, 102., 123., 133., 1.);
     NSView.addSubview(contentView, Obj.magic(button));
     NSView.addSubview(contentView, Obj.magic(secondButton));
+    NSView.addSubview(contentView, Obj.magic(textView));
     let a = NSView.make((0., 0., 400., 400.));
     let scrollView = NSScrollView.make((0., 0., 400., 400.));
     NSScrollView.setDocumentView(scrollView, contentView);
