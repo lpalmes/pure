@@ -28,6 +28,7 @@ test: lib/cocoa_stubs.o lib/cocoa.cmx test.cmx
 clean:
 	rm -f lib/*.cm* lib/*.o *.cm* *.o
 	rm -f test
+	clear
 
 .SUFFIXES: .re .rei .cmo .cmi .cmx
 

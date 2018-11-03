@@ -321,7 +321,7 @@ CAMLprim value ml_NSViewGetContentRect (value view)
   CAMLparam1 (view);
   CAMLlocal1 (rect);
   View *nsView = View_val (view);
-  rect = caml_alloc_small(4, 0);
+  rect = caml_alloc(4, 0);
 
   double x = nsView.frame.origin.x;
   double y = nsView.frame.origin.y;
@@ -329,10 +329,10 @@ CAMLprim value ml_NSViewGetContentRect (value view)
   double h = nsView.frame.size.height;
 
 
-  Double_field(rect, 0) = x;
-  Double_field(rect, 1) = y;
-  Double_field(rect, 2) = w;
-  Double_field(rect, 3) = h;
+  Store_field(rect, 0, caml_copy_double(x));
+  Store_field(rect, 1, caml_copy_double(y));
+  Store_field(rect, 2, caml_copy_double(w));
+  Store_field(rect, 3, caml_copy_double(h));
 
   CAMLreturn (rect);
 }
@@ -556,10 +556,11 @@ CAMLprim value ml_NSScrollViewSetDocumentView (value scroll, value document)
 
 @end
 
-static NSTextStorage* buildTextStorageForWidth(CGFloat width, int numberOfLines, NSAttributedString *attributedString)
-{
-  
-  
+static NSTextStorage* buildTextStorageForWidth(
+  NSAttributedString *attributedString,
+  CGFloat width,
+  int numberOfLines
+) {
   NSLayoutManager *layoutManager = [NSLayoutManager new];
   
   NSTextStorage *textStorage = [[NSTextStorage alloc] initWithAttributedString: attributedString];
@@ -583,7 +584,7 @@ static NSTextStorage* buildTextStorageForWidth(CGFloat width, int numberOfLines,
 
 static CGSize measureTextView(NSAttributedString *attributedString, float width, int numberOfLines)
 {
-  NSTextStorage *textStorage = buildTextStorageForWidth(width, numberOfLines, attributedString);
+  NSTextStorage *textStorage = buildTextStorageForWidth(attributedString, width, numberOfLines);
 //  [shadowText calculateTextFrame:textStorage];
   NSLayoutManager *layoutManager = textStorage.layoutManagers.firstObject;
   NSTextContainer *textContainer = layoutManager.textContainers.firstObject;
@@ -592,6 +593,38 @@ static CGSize measureTextView(NSAttributedString *attributedString, float width,
   return computedSize;
 }
 
+#define Val_NSAttributedString(v) ((value)(v))
+#define NSAttributedString_val(v) ((__bridge NSMutableAttributedString *)(value)(v))
+
+CAMLprim value ml_NSAttributedStringMake (value str_v) {
+  CAMLparam1 (str_v);
+  NSString *str = [NSString stringWithUTF8String:String_val (str_v)];
+  NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:str];
+  CAMLreturn (Val_NSAttributedString (attributedString));
+}
+
+CAMLprim value ml_NSAttributedStringMeasure (value attr_v, value width_v, value lines_v) {
+  CAMLparam3 (attr_v, width_v, lines_v);
+  CAMLlocal1 (rect);
+  rect = caml_alloc(2, 0);
+
+
+  NSMutableAttributedString *attributedString = NSAttributedString_val (attr_v);
+  double width = Double_val (width_v);
+  int lines = Int_val (lines_v);
+
+  NSLog(@"Hello from measure");
+
+  CGSize size = measureTextView(attributedString, width, lines);
+
+  double w = size.width;
+  double h = size.height;
+
+  Store_field(rect, 0, caml_copy_double(w));
+  Store_field(rect, 1, caml_copy_double(h));
+
+  CAMLreturn (rect);
+}
 
 #define Val_TextView(v) ((value)(v))
 #define TextView_val(v) ((__bridge TextView *)(value)(v))
@@ -607,7 +640,6 @@ CAMLprim value ml_TextViewWithContentRect (value rect_v)
   NSRect contentRect = NSMakeRect (x, y, w, h);
   TextView *view = [[TextView alloc] initWithFrame: contentRect];
 
-
   CAMLreturn (Val_TextView (view));
 }
 
@@ -619,8 +651,7 @@ CAMLprim value ml_TextViewSetText (value textView_v, value str_v)
   NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:str];
 //  NSFont *menloFont = [NSFont fontWithName:@"" size:20];
 //  [attributedString addAttribute:NSFontAttributeName value:menloFont range:NSMakeRange(0, attributedString.length)];
-  [textView setFrameSize:measureTextView(attributedString, textView.frame.size.width, 0)];
-  NSTextStorage *textStorage = buildTextStorageForWidth(textView.frame.size.width, 0, attributedString);
+  NSTextStorage *textStorage = buildTextStorageForWidth(attributedString, textView.frame.size.width, 0);
   [textView setTextStorage:textStorage];
   CAMLreturn (Val_unit);
 }

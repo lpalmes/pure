@@ -3,7 +3,7 @@ let log = fmt => Printf.ksprintf(_NSLog, fmt);
 
 type nsRect = (float, float, float, float);
 
-type nsSize = (float, float);
+type cgSize = (float, float);
 
 type nsWindow;
 
@@ -58,7 +58,7 @@ module NSWindow = {
   external setTitle: (nsWindow, string) => unit = "ml_NSWindow_setTitle";
   external title: nsWindow => string = "ml_NSWindow_title";
   external addSubview: (nsWindow, nsView) => unit = "ml_NSWindowAddSubview";
-  external setMinSize: (nsWindow, nsSize) => unit = "ml_NSWindowSetMinSize";
+  external setMinSize: (nsWindow, cgSize) => unit = "ml_NSWindowSetMinSize";
   let windowDidResize = f => {
     let delegate = delegate();
     globalWindowDelegate := delegate;
@@ -87,6 +87,13 @@ module TextView = {
   [@noalloc] external make: nsRect => textView = "ml_TextViewWithContentRect";
   [@noalloc]
   external setText: (textView, string) => unit = "ml_TextViewSetText";
+};
+
+module NSAttributedString = {
+  type nsAttributedString;
+  external make: string => nsAttributedString = "ml_NSAttributedStringMake";
+  external measure: (nsAttributedString, float, int) => cgSize =
+    "ml_NSAttributedStringMeasure";
 };
 
 type nsApplication;
