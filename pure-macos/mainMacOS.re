@@ -4,6 +4,8 @@ module Test = {
   type state = {elements: list(int)};
   type action =
     | Add;
+
+  let sayHello = () => print_endline("Hello");
   let createElement = (~children as _, _) =>
     Pure.element({
       ...Pure.reducerComponent("Test"),
@@ -30,7 +32,7 @@ module Test = {
               />
               <button
                 title="Add column"
-                onClick={() => self.send(Add)}
+                onClick=sayHello
                 layout={...defaultLayout, height: 50}
               />
               <text
@@ -101,4 +103,58 @@ module Test = {
         </window>,
     });
 };
-PureMacOS.render(<Test />);
+
+let lyrics = "What will grow crooked, you can't make straight
+It's the price that you gotta pay
+Do yourself a favor and pack you bags
+Buy a ticket and get on the train
+Buy a ticket and get on the train
+Cause this is fucked up, fucked up
+Cause this is fucked up, fucked up
+People get crushed like biscuit crumbs
+And laid down in the bitumen
+You have tried your best to please everyone
+But it just isn't happening
+No, it just isn't happening
+And it's fucked up, fucked up
+And this is fucked up, fucked up
+This your blind spot, blind spot
+It should be obvious, but it's not.
+But it isn't, but it isn't
+You cannot kick start a dead horse
+You just crush yourself and walk away
+I don't care what the future holds
+Cause I'm right here and I'm today
+With your fingers you can touch me
+I'm your black swan, black swan
+But I made it to the top, made it to the top
+This is fucked up, fucked up
+You are fucked up, fucked up
+This is fucked up, fucked up
+Be your black swan, black swan
+I'm for spare parts, broken up
+
+let test = () => \"This is a test function\"";
+
+module FontTest = {
+  let createElement = (~children as _, _) =>
+    Pure.element({
+      ...Pure.reducerComponent("Test"),
+      render: _ =>
+        <window layout={...defaultLayout, flex: 1}>
+          <view layout={...defaultLayout, flex: 1, flexDirection: Row}>
+            <scrollView
+              layout={...defaultLayout, flex: 1, overflow: Scroll, margin: 10}>
+              <view>
+                <text
+                  title=lyrics
+                  fontColor=(255., 255., 255., 1.0)
+                  fontSize=30.
+                />
+              </view>
+            </scrollView>
+          </view>
+        </window>,
+    });
+};
+PureMacOS.render(<FontTest />);

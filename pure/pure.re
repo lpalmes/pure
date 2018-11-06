@@ -11,6 +11,9 @@ type props = {
   disabled: option(bool),
   onClick: option(unit => unit),
   onChangeText: option(string => unit),
+  fontFamily: option(string),
+  fontSize: option(float),
+  fontColor: option(color),
   layout: LayoutTypes.cssStyle,
   style,
 };

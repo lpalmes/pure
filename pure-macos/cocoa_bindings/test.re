@@ -19,14 +19,14 @@ let () = {
 
     Sed in aliquet tellus. Vestibulum tempus dolor eu nisi luctus, vitae aliquet felis sodales. Sed elementum mollis justo imperdiet lobortis. Sed laoreet diam sit amet dapibus feugiat. Sed molestie, purus id porttitor pulvinar, leo libero condimentum erat, ac gravida orci augue eu felis. Proin nunc mauris, dictum vel facilisis ac, lacinia lobortis sapien. Fusce massa lorem, pellentesque sed nulla in, dapibus fringilla ipsum. Donec fringilla, libero non mattis finibus, ante ipsum malesuada metus, vel cursus ligula leo sed ex. ";
 
-    let attributedString = NSAttributedString.make(text);
-    let font = Font.make("Menlo", 10.);
-    NSAttributedString.setFont(attributedString, font);
-    let textView = TextView.make((0., 0., 100., 100.));
-    let (width, height) =
-      NSAttributedString.measure(attributedString, 400., 0);
-    TextView.setAttributedString(textView, attributedString);
-    /* TextView.setFrame(textView, 200.); */
+    let textStorage = TextStorage.make(text);
+    let font = Font.make("Menlo", 100.);
+    TextStorage.setFont(textStorage, font);
+    let textView = TextView.make((0., 0., 0., 100.));
+    let color = NSColor.make(0., 2., 0., 1.0);
+    TextStorage.setColor(textStorage, color);
+    let (width, height) = TextStorage.measure(textStorage, 400., 0);
+    TextView.setTextStorage(textView, textStorage);
 
     NSView.setRect(Obj.magic(textView), (0., 0., width, height));
     print_endline(string_of_float(width));

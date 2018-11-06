@@ -13,6 +13,9 @@ let defaultProps: Pure.props = {
   src: None,
   onClick: None,
   onChangeText: None,
+  fontFamily: None,
+  fontSize: None,
+  fontColor: None,
   layout: defaultLayout,
   style: defaultStyle,
 };
@@ -27,11 +30,25 @@ let createNativeElement =
       ~layout=defaultLayout,
       ~style=defaultStyle,
       ~children: list(pureElement),
+      ~fontFamily: option(string)=?,
+      ~fontSize: option(float)=?,
+      ~fontColor: option(color)=?,
       _: unit,
     ) =>
   Nested(
     nativeElement,
-    {...defaultProps, id, value, onClick, layout, style, title},
+    {
+      ...defaultProps,
+      id,
+      value,
+      onClick,
+      layout,
+      style,
+      title,
+      fontFamily,
+      fontSize,
+      fontColor,
+    },
     children,
   );
 

@@ -17,10 +17,21 @@ module Font = {
   external make: (string, float) => nsFont = "ml_FontMake";
 };
 
+module NSColor = {
+  type color;
+  external make: (float, float, float, float) => color = "ml_NSColorMake";
+};
+
 module TextStorage = {
   type textStorage;
 
   external make: string => textStorage = "ml_NSTextStorageMake";
+  external setFont: (textStorage, Font.nsFont) => unit =
+    "ml_NSTextStorageSetFont";
+  external setColor: (textStorage, NSColor.color) => unit =
+    "ml_NSTextStorageSetColor";
+  external measure: (textStorage, float, int) => cgSize =
+    "ml_NSTextStorageMeasure";
 };
 
 module NSAttributedString = {
@@ -104,6 +115,8 @@ module TextView = {
   external setAttributedString:
     (textView, NSAttributedString.nsAttributedString) => unit =
     "ml_TextViewSetAttributedString";
+  external setTextStorage: (textView, TextStorage.textStorage) => unit =
+    "ml_TextViewSetTextStorage";
   external setText: (textView, string) => unit = "ml_TextViewSetText";
   /* textView, width to render text  */
   external setFrame: (textView, float) => unit = "ml_TextViewSetFrame";

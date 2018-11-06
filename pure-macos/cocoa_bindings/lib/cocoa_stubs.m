@@ -47,8 +47,6 @@ enum {
   if (closure_f != NULL)
     caml_callback2 (*closure_f, applicationId, Val_int (ApplicationWillFinishLaunching));
 
-  // NSLog (@"applicationWillFinishLaunching");
-
   id menubar = [NSMenu new];
   id appMenuItem = [NSMenuItem new];
   [menubar addItem:appMenuItem];
@@ -593,14 +591,18 @@ static CGSize measureTextView(NSAttributedString *attributedString, float width,
   return computedSize;
 }
 
-#define Val_TextStorage(v) ((value)(v))
-#define TextStorage_val(v) ((__bridge NSTextStorage *)(value)(v))
+#define Val_Color(v) ((value)(v))
+#define Color_val(v) ((__bridge NSColor *)(value)(v))
 
-CAMLprim value ml_NSTextStorageMake (value str_v) {
-  CAMLparam1 (str_v);
-  NSString *string = [NSString stringWithUTF8String:String_val (str_v)];
-  NSTextStorage *textStorage = [[NSTextStorage alloc] initWithString: string];
-  CAMLreturn (Val_TextStorage (textStorage));
+CAMLprim value ml_NSColorMake(value red_v, value green_v, value blue_v, value alpha_v)
+{
+  CAMLparam4 (red_v, blue_v, green_v, alpha_v);
+  CGFloat red = Double_val(red_v) / 255;
+  CGFloat blue = Double_val(blue_v) / 255;
+  CGFloat green = Double_val(green_v) / 255;
+  CGFloat alpha = Double_val(alpha_v);
+  NSColor *color = [NSColor colorWithRed:red green:green blue:blue alpha:alpha];
+  CAMLreturn( Val_Color (color) );
 }
 
 #define Val_Font(v) ((value)(v))
@@ -613,6 +615,54 @@ CAMLprim value ml_FontMake (value str_v, value size_v) {
   NSFont *font = [NSFont fontWithName:fontName size:size];
   CAMLreturn (Val_Font (font));
 }
+
+#define Val_TextStorage(v) ((value)(v))
+#define TextStorage_val(v) ((__bridge NSTextStorage *)(value)(v))
+
+CAMLprim value ml_NSTextStorageMake (value str_v) {
+  CAMLparam1 (str_v);
+  NSString *string = [NSString stringWithUTF8String:String_val (str_v)];
+  NSTextStorage *textStorage = [[NSTextStorage alloc] initWithString: string];
+  CAMLreturn (Val_TextStorage (textStorage));
+}
+
+CAMLprim value ml_NSTextStorageSetFont (value text_v, value font_v) {
+  CAMLparam2 (text_v, font_v);
+  NSTextStorage *textStorage = TextStorage_val (text_v);
+  NSFont *font = Font_val (font_v);
+  [textStorage addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, textStorage.length)];
+  CAMLreturn (Val_unit);
+}
+
+CAMLprim value ml_NSTextStorageSetColor (value text_v, value color_v) {
+  CAMLparam2 (text_v, color_v);
+  NSTextStorage *textStorage = TextStorage_val (text_v);
+  NSColor *color = Color_val (color_v);
+  [textStorage addAttribute:NSForegroundColorAttributeName value:color range:NSMakeRange(0, textStorage.length)];
+  CAMLreturn (Val_unit);
+}
+
+CAMLprim value ml_NSTextStorageMeasure (value textStorage_v, value width_v, value lines_v) {
+  CAMLparam3 (textStorage_v, width_v, lines_v);
+  CAMLlocal1 (rect);
+  rect = caml_alloc(2, 0);
+
+
+  NSTextStorage *textStorage = TextStorage_val (textStorage_v);
+  double width = Double_val (width_v);
+  int lines = Int_val (lines_v);
+
+  CGSize size = measureTextView(textStorage, width, lines);
+
+  double w = size.width;
+  double h = size.height;
+
+  Store_field(rect, 0, caml_copy_double(w));
+  Store_field(rect, 1, caml_copy_double(h));
+
+  CAMLreturn (rect);
+}
+
 
 #define Val_NSAttributedString(v) ((value)(v))
 #define NSAttributedString_val(v) ((__bridge NSMutableAttributedString *)(value)(v))
@@ -696,21 +746,26 @@ CAMLprim value ml_TextViewSetAttributedString (value textView_v, value attr_v) {
   CAMLreturn (Val_unit);
 }
 
+CAMLprim value ml_TextViewSetTextStorage (value textView_v, value textStorage_v) {
+  CAMLparam2 (textView_v, textStorage_v);
+  TextView *textView = TextView_val (textView_v);
+  NSTextStorage *storage = TextStorage_val (textStorage_v);
+  NSTextStorage *textStorage = buildTextStorageForWidth(storage, textView.frame.size.width, 0);
+  [textView setTextStorage:textStorage];
+  CAMLreturn (Val_unit);
+}
+
 CAMLprim value ml_TextViewSetFrame (value textView_v, value width_v) {
   CAMLparam2 (textView_v, width_v);
   TextView *textView = TextView_val (textView_v);
   double width = Double_val (width_v);
-  NSMutableAttributedString *attributedString = [
-    [NSMutableAttributedString alloc] initWithString:textView.textStorage.string];
-  NSTextStorage *textStorage = buildTextStorageForWidth(attributedString, width, 0);
-
+  NSTextStorage *textStorage = buildTextStorageForWidth(textView.textStorage, width, 0);
   [textView setTextStorage:textStorage];
-  CGSize size = measureTextView(attributedString, width, 0);
+  CGSize size = measureTextView(textStorage, width, 0);
   NSRect contentRect = NSMakeRect (textView.frame.origin.x, textView.frame.origin.y, size.width, size.height);
   [textView setFrame:contentRect];
   CAMLreturn (Val_unit);
 }
-
 
 
 

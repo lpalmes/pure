@@ -112,6 +112,28 @@ let perfomLayout = (w, h) => {
   /* List.length(layoutRoot.orphanNodes) |> string_of_int |> print_endline; */
   applyLayout(layoutRoot.rootNode.node);
 };
+let createTextStorage = props => {
+  let text =
+    switch (props.title) {
+    | Some(t) => t
+    | None => ""
+    };
+  let textStorage = TextStorage.make(text);
+  let font =
+    switch (props.fontFamily, props.fontSize) {
+    | (Some(font), Some(size)) => Font.make(font, size)
+    | (Some(font), None) => Font.make(font, 12.0)
+    | (None, Some(size)) => Font.make("Helvetica", size)
+    | (None, None) => Font.make("Helvetica", 12.0)
+    };
+  TextStorage.setFont(textStorage, font);
+  switch (props.fontColor) {
+  | Some((r, g, b, a)) =>
+    TextStorage.setColor(textStorage, NSColor.make(r, g, b, a))
+  | None => ()
+  };
+  textStorage;
+};
 
 module Host: Reconciler.Spec.HostConfig = {
   type hostNode = hostNativeView;
@@ -131,13 +153,9 @@ module Host: Reconciler.Spec.HostConfig = {
             };
             View(view);
           | Text =>
-            let text =
-              switch (props.title) {
-              | Some(t) => t
-              | None => ""
-              };
+            let textStorage = createTextStorage(props);
             let textView = TextView.make((0., 0., 0., 0.));
-            TextView.setText(textView, text);
+            TextView.setTextStorage(textView, textStorage);
             switch (props.style.backgroundColor) {
             | Some((r, g, b, a)) =>
               NSView.setBackgroundColor(Obj.magic(textView), r, g, b, a)
@@ -195,18 +213,9 @@ module Host: Reconciler.Spec.HostConfig = {
                   print_endline("Measuring");
                   print_endline(string_of_int(w));
                   print_endline(string_of_int(h));
-                  let text =
-                    switch (props.title) {
-                    | Some(title) => title
-                    | None => ""
-                    };
-                  let attributedString = NSAttributedString.make(text);
+                  let textStorage = createTextStorage(props);
                   let (width, height) =
-                    NSAttributedString.measure(
-                      attributedString,
-                      float_of_int(w),
-                      30,
-                    );
+                    TextStorage.measure(textStorage, float_of_int(w), 0);
                   print_endline(string_of_float(width));
                   print_endline(string_of_float(height));
                   {
@@ -220,14 +229,6 @@ module Host: Reconciler.Spec.HostConfig = {
             PureLayout.LayoutSupport.createNode(
               ~withChildren=[||],
               ~andStyle=props.layout,
-              /* ~andMeasure=
-                 (node, w, wMeasureMode, h, hMeasureMode) => {
-                   let print = a => print_endline(string_of_int(a));
-                   win |> NSWindow.getContentView()
-                   print(w);
-                   print(h);
-                   {width: 400, height: 400};
-                 }, */
               (v, globalId.contents),
             )
           | _ =>
