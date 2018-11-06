@@ -11,10 +11,30 @@ type nsView;
 
 type nsButton;
 
-type subView = {. addSubview: subView => unit};
+module Font = {
+  type nsFont;
+
+  external make: (string, float) => nsFont = "ml_FontMake";
+};
+
+module TextStorage = {
+  type textStorage;
+
+  external make: string => textStorage = "ml_NSTextStorageMake";
+};
+
+module NSAttributedString = {
+  type nsAttributedString;
+
+  external make: string => nsAttributedString = "ml_NSAttributedStringMake";
+  external measure: (nsAttributedString, float, int) => cgSize =
+    "ml_NSAttributedStringMeasure";
+  external setFont: (nsAttributedString, Font.nsFont) => unit =
+    "ml_NSAttributedStringSetFont";
+};
 
 module NSView = {
-  [@noalloc] external make: nsRect => nsView = "ml_NSViewWithContentRect";
+  external make: nsRect => nsView = "ml_NSViewWithContentRect";
   external setRect: (nsView, nsRect) => unit = "ml_NSViewSetContentRect";
   external getRect: nsView => nsRect = "ml_NSViewGetContentRect";
   external addSubview: (nsView, nsView) => unit = "ml_NSViewAddSubview";
@@ -35,10 +55,8 @@ module NSView = {
 };
 
 module NSButton = {
-  [@noalloc] external make: nsRect => nsButton = "ml_NSButtonWithContentRect";
-  [@noalloc]
+  external make: nsRect => nsButton = "ml_NSButtonWithContentRect";
   external setTitle: (nsButton, string) => unit = "ml_NSButtonSetTitle";
-  [@noalloc]
   external setCallback: (nsButton, unit => unit) => unit =
     "Button_setCallback";
 };
@@ -75,25 +93,20 @@ module NSWindow = {
 
 module NSScrollView = {
   type nsScrollView;
-  [@noalloc]
   external make: nsRect => nsScrollView = "ml_NSScrollViewWithContentRect";
-  [@noalloc]
   external setDocumentView: (nsScrollView, nsView) => unit =
     "ml_NSScrollViewSetDocumentView";
 };
 
 module TextView = {
   type textView;
-  [@noalloc] external make: nsRect => textView = "ml_TextViewWithContentRect";
-  [@noalloc]
+  external make: nsRect => textView = "ml_TextViewWithContentRect";
+  external setAttributedString:
+    (textView, NSAttributedString.nsAttributedString) => unit =
+    "ml_TextViewSetAttributedString";
   external setText: (textView, string) => unit = "ml_TextViewSetText";
-};
-
-module NSAttributedString = {
-  type nsAttributedString;
-  external make: string => nsAttributedString = "ml_NSAttributedStringMake";
-  external measure: (nsAttributedString, float, int) => cgSize =
-    "ml_NSAttributedStringMeasure";
+  /* textView, width to render text  */
+  external setFrame: (textView, float) => unit = "ml_TextViewSetFrame";
 };
 
 type nsApplication;

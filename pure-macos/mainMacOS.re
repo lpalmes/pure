@@ -7,7 +7,7 @@ module Test = {
   let createElement = (~children as _, _) =>
     Pure.element({
       ...Pure.reducerComponent("Test"),
-      initialState: () => {elements: [1, 2, 3]},
+      initialState: () => {elements: [1, 2, 3, 10, 20, 41, 14, 125, 23, 1]},
       reducer: (action, state) =>
         switch (action) {
         | Add =>
@@ -32,6 +32,10 @@ module Test = {
                 title="Add column"
                 onClick={() => self.send(Add)}
                 layout={...defaultLayout, height: 50}
+              />
+              <text
+                title="React Native lets you build mobile apps using only JavaScript. It uses the same design as React, letting you compose a rich mobile UI from declarative components."
+                layout={...defaultLayout, margin: 10}
               />
             </view>
             <scrollView
@@ -59,11 +63,17 @@ module Test = {
                   self.state.elements
                   |> List.map(i =>
                        <view
-                         layout={...defaultLayout, margin: 10, height: 50}
+                         layout={...defaultLayout, margin: 10}
                          style={
                            backgroundColor: Some((145., 124., 123., 1.)),
-                         }
-                       />
+                         }>
+                         <text
+                           title={
+                             Array.make(i, "Hello ")
+                             |> Array.fold_left((++), "")
+                           }
+                         />
+                       </view>
                      )
                   |> Pure.list
                 }
