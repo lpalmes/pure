@@ -1,7 +1,7 @@
 type printOptions = {
   printLayout: bool,
   printStyle: bool,
-  printChildren: bool
+  printChildren: bool,
 };
 
 type edge =
@@ -58,14 +58,12 @@ type measureMode =
 
 let css_max_cached_result_count = 6;
 
-
 /***
  * We really *want* to be using the definitions from `Encoding`, but we want
  * to guarantee that all of the floating point operations are inlined.
  * Therefore, we directly reference the `HardCodedEncoding`. functors,
  */
 type unitOfM = HardCodedEncoding.scalar;
-
 
 /***
  * Intentionally, nothing is mutable inside each
@@ -76,7 +74,7 @@ type cachedMeasurement = {
   mutable widthMeasureMode: measureMode,
   mutable heightMeasureMode: measureMode,
   mutable computedWidth: unitOfM,
-  mutable computedHeight: unitOfM
+  mutable computedHeight: unitOfM,
 };
 
 type overflow =
@@ -90,12 +88,12 @@ type wrapType =
 
 type dimensions = {
   width: unitOfM,
-  height: unitOfM
+  height: unitOfM,
 };
 
 type coordinates = {
   left: unitOfM,
-  top: unitOfM
+  top: unitOfM,
 };
 
 /* TODO: Benchmark the immutable version versus mutable version */
@@ -170,9 +168,8 @@ type cssStyle = {
   mutable borderEnd: unitOfM,
   mutable borderHorizontal: unitOfM,
   mutable borderVertical: unitOfM,
-  mutable border: unitOfM
+  mutable border: unitOfM,
 };
-
 
 /***
  * Analog to "computed style" - the position takes into account all of the CSS
@@ -204,7 +201,7 @@ type cssLayout = {
   mutable cachedMeasurement6: cachedMeasurement,
   mutable measuredWidth: unitOfM,
   mutable measuredHeight: unitOfM,
-  mutable cachedLayout: cachedMeasurement
+  mutable cachedLayout: cachedMeasurement,
 };
 
 module Create = (Node: Spec.Node, Encoding: Spec.Encoding) => {
@@ -216,11 +213,14 @@ module Create = (Node: Spec.Node, Encoding: Spec.Encoding) => {
     mutable parent: node,
     mutable nextChild: node,
     mutable hasNewLayout: bool,
-    mutable measure: option((node, unitOfM, measureMode, unitOfM, measureMode) => dimensions),
+    mutable measure:
+      option(
+        (node, unitOfM, measureMode, unitOfM, measureMode) => dimensions,
+      ),
     print: option(Node.context => unit),
     mutable children: array(node),
     mutable childrenCount: int,
     mutable isDirty: bool,
-    mutable context: Node.context
+    mutable context: Node.context,
   };
 };

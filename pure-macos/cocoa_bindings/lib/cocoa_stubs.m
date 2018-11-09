@@ -149,7 +149,7 @@ CAMLprim value ml_NSWindow_windowWithContentRect (value winId, value rect_v)
                                                 backing:NSBackingStoreBuffered
                                                   defer:NO];
 
-  [win setTitleVisibility:NSWindowTitleHidden];
+  // [win setTitleVisibility:NSWindowTitleHidden];
   [win setTitlebarAppearsTransparent:YES];
 
   [win setDelegate:[[MLWindowDelegate alloc] initWithId:winId]];
@@ -353,6 +353,16 @@ CAMLprim value ml_NSViewRemoveFromSuperview (value view_v)
   CAMLreturn (Val_unit);
 }
 
+CAMLprim value ml_NSViewSetBorderRadius (value view_v, value radius_v) {
+  CAMLparam2 (view_v, radius_v);
+  View *view = View_val (view_v);
+  double radius = Double_val (radius_v);
+  view.layer = view.layer;
+  view.wantsLayer = YES;
+  view.layer.masksToBounds = YES;
+  view.layer.cornerRadius = radius;
+  CAMLreturn (Val_unit);
+}
 
 CAMLprim value ml_NSWindowGetContentView (value win_v)
 {
@@ -375,23 +385,24 @@ typedef void (^ActionBlock)();
 @interface Button : NSButton
 
 @property(nonatomic, copy) ActionBlock _actionBlock;
+@property(nonatomic, assign) value _ocaml_callback;
 
-- (void)onClick:(ActionBlock)action;
+- (void)onClick;
 @end
 
 @implementation Button
 
-- (void)onClick:(ActionBlock)action
+- (void)onClick
 {
-  self._actionBlock = action;
   [self setTarget:self];
   [self setAction:@selector(callActionBlock:)];
 }
 
 - (void)callActionBlock:(id)sender
 {
-#pragma unused(sender)
-  self._actionBlock();
+  #pragma unused(sender)
+  NSLog(@"I have been clickd");
+  caml_callback(self._ocaml_callback, Val_unit);
 }
 @end
 
@@ -430,15 +441,14 @@ CAMLprim value Button_setCallback(value btn_v, value callback_v)
   CAMLparam2(btn_v, callback_v);
 
   Button *btn = Button_val(btn_v);
-  value callback = callback_v;
-
+  [btn onClick];
+  value oldCallback = btn._ocaml_callback;
+  caml_remove_global_root(&oldCallback);
+  btn._ocaml_callback = callback_v;
+  value callback = btn._ocaml_callback;
   caml_register_global_root(&callback);
 
-  [btn onClick:^{
-    caml_callback(callback, Val_unit);
-  }];
-
-  CAMLreturn(Val_Button(btn));
+  CAMLreturn (Val_unit);
 }
 
 #define Val_ScrollView(v) ((value)(v))
@@ -454,6 +464,7 @@ CAMLprim value ml_NSScrollViewWithContentRect (value rect_v)
 
   NSRect contentRect = NSMakeRect (x, y, w, h);
   NSScrollView *view = [[NSScrollView alloc] initWithFrame: contentRect];
+  view.hasVerticalScroller = YES;
 
   CAMLreturn (Val_ScrollView (view));
 }
@@ -616,6 +627,45 @@ CAMLprim value ml_FontMake (value str_v, value size_v) {
   CAMLreturn (Val_Font (font));
 }
 
+CAMLprim value ml_FontGetSystem (value size_v, value fontWeight_v) {
+  CAMLparam2 (size_v, fontWeight_v);
+  double size = Double_val (size_v);
+  int weight = Int_val (fontWeight_v);
+  NSFontWeight fontWeight = NSFontWeightRegular;
+  switch (weight) {
+    case 0:
+      fontWeight = NSFontWeightBlack;
+      break;
+    case 1:
+      fontWeight = NSFontWeightBold;
+      break;
+    case 2:
+      fontWeight = NSFontWeightHeavy;
+      break;
+    case 3:
+      fontWeight = NSFontWeightLight;
+      break;
+    case 4:
+      fontWeight = NSFontWeightMedium;
+      break;
+    case 5:
+      fontWeight = NSFontWeightRegular;
+      break;
+    case 6:
+      fontWeight = NSFontWeightSemibold;
+      break;
+    case 7:
+      fontWeight = NSFontWeightThin;
+      break;
+    case 8:
+      fontWeight = NSFontWeightUltraLight;
+      break;
+  }
+  NSFont *font = [NSFont systemFontOfSize:size weight:fontWeight];
+  CAMLreturn (Val_Font (font));
+}
+
+
 #define Val_TextStorage(v) ((value)(v))
 #define TextStorage_val(v) ((__bridge NSTextStorage *)(value)(v))
 
@@ -767,5 +817,32 @@ CAMLprim value ml_TextViewSetFrame (value textView_v, value width_v) {
   CAMLreturn (Val_unit);
 }
 
+#define Val_NSImageView(v) ((value)(v))
+#define NSImageView_val(v) ((__bridge NSImageView *)(value)(v))
+
+CAMLprim value ml_NSImageViewWithContentRect (value rect_v)
+{
+  CAMLparam1 (rect_v);
+  CGFloat x = Double_val (Field (rect_v, 0));
+  CGFloat y = Double_val (Field (rect_v, 1));
+  CGFloat w = Double_val (Field (rect_v, 2));
+  CGFloat h = Double_val (Field (rect_v, 3));
+
+  NSRect contentRect = NSMakeRect (x, y, w, h);
+  NSImageView *view = [[NSImageView alloc] initWithFrame: contentRect];
+
+  CAMLreturn (Val_NSImageView (view));
+}
+
+CAMLprim value ml_NSImageViewSetImage (value imageView_v, value name_v)
+{
+  CAMLparam2 (imageView_v, name_v);
+  NSImageView *imageView = NSImageView_val (imageView_v);
+  NSString *str = [NSString stringWithUTF8String:String_val (name_v)];
+  NSImage *image = [[NSImage alloc] initByReferencingFile:str];
+  [imageView setImage:image];
+
+  CAMLreturn (Val_unit);
+}
 
 

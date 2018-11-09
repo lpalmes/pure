@@ -15,7 +15,9 @@ let defaultProps: Pure.props = {
   onChangeText: None,
   fontFamily: None,
   fontSize: None,
+  fontWeight: Pure.Regular,
   fontColor: None,
+  borderRadius: None,
   layout: defaultLayout,
   style: defaultStyle,
 };
@@ -26,13 +28,16 @@ let createNativeElement =
       ~id: option(string)=?,
       ~value: option(string)=?,
       ~title: option(string)=?,
+      ~src: option(string)=?,
       ~onClick: option(unit => unit)=?,
       ~layout=defaultLayout,
       ~style=defaultStyle,
       ~children: list(pureElement),
+      ~borderRadius: option(float)=?,
       ~fontFamily: option(string)=?,
       ~fontSize: option(float)=?,
       ~fontColor: option(color)=?,
+      ~fontWeight: Pure.fontWeight=Pure.Regular,
       _: unit,
     ) =>
   Nested(
@@ -44,10 +49,13 @@ let createNativeElement =
       onClick,
       layout,
       style,
+      src,
       title,
       fontFamily,
+      borderRadius,
       fontSize,
       fontColor,
+      fontWeight,
     },
     children,
   );
@@ -60,3 +68,4 @@ let button = createNativeElement(Button);
 let scrollView = createNativeElement(ScrollView);
 
 let window = createNativeElement(Window);
+let imageView = createNativeElement(Image);

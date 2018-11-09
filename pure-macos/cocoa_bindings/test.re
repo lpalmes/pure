@@ -20,7 +20,7 @@ let () = {
     Sed in aliquet tellus. Vestibulum tempus dolor eu nisi luctus, vitae aliquet felis sodales. Sed elementum mollis justo imperdiet lobortis. Sed laoreet diam sit amet dapibus feugiat. Sed molestie, purus id porttitor pulvinar, leo libero condimentum erat, ac gravida orci augue eu felis. Proin nunc mauris, dictum vel facilisis ac, lacinia lobortis sapien. Fusce massa lorem, pellentesque sed nulla in, dapibus fringilla ipsum. Donec fringilla, libero non mattis finibus, ante ipsum malesuada metus, vel cursus ligula leo sed ex. ";
 
     let textStorage = TextStorage.make(text);
-    let font = Font.make("Menlo", 100.);
+    let font = Font.getSystemFont(20., Font.Bold);
     TextStorage.setFont(textStorage, font);
     let textView = TextView.make((0., 0., 0., 100.));
     let color = NSColor.make(0., 2., 0., 1.0);
@@ -33,17 +33,8 @@ let () = {
     print_endline(string_of_float(height));
 
     NSButton.setTitle(button, "Click me");
-    NSButton.setCallback(
-      button,
-      () => {
-        print_endline("Relayouuuuutl");
-        NSView.removeFromSuperview(Obj.magic(button));
-        NSView.setRect(contentView, (0., 0., 400., 200.));
-      },
-    );
-    NSButton.setCallback(secondButton, () =>
-      print_endline("Second callback")
-    );
+    NSButton.setCallback(button, () => print_endline("Relayouuuuutl"));
+    NSButton.setCallback(secondButton, () => print_endline("Say goodbye"));
     NSWindow.windowDidResize(f);
     NSWindow.center(w);
     NSWindow.makeKeyAndOrderFront(w);
@@ -54,6 +45,7 @@ let () = {
     let a = NSView.make((0., 0., 400., 400.));
     let scrollView = NSScrollView.make((0., 0., 400., 400.));
     NSScrollView.setDocumentView(scrollView, contentView);
+    NSView.setBorderRadius(a, 20.);
     NSView.addSubview(a, Obj.magic(scrollView));
     NSWindow.addSubview(w, a);
   };

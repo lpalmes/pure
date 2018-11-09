@@ -2,7 +2,7 @@
   "name": "pure",
   "bs-dependencies": ["bs-webapi", "@glennsl/bs-jest"],
   "static-libraries": ["pure-macos/cocoa_bindings/lib/cocoa_stubs.o"],
-  "c-linker-flags": ["'-framework Cocoa'"],
+  "c-linker-flags": ["'-framework Cocoa -mmacosx-version-min=10.10'"],
   "ppx-flags": ["PurePpx"],
   "sources": [
     { "dir": "pure", "subdirs": true },

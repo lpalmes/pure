@@ -18,7 +18,7 @@ all: clean test
 CFLAGS = \
 	-Wextra -Wall  \
 	-O -g -std=c99 -pedantic-errors \
-	-Wsign-compare -Wshadow
+	-Wsign-compare -Wshadow -mmacosx-version-min=10.10
 
 lib/cocoa_stubs.o: CFLAGS += -I $(STDLIB)
 

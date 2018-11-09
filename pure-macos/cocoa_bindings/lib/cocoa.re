@@ -14,7 +14,19 @@ type nsButton;
 module Font = {
   type nsFont;
 
+  type fontWeight =
+    | Black
+    | Bold
+    | Heavy
+    | Light
+    | Medium
+    | Regular
+    | Semibold
+    | Thin
+    | UltraLight;
+
   external make: (string, float) => nsFont = "ml_FontMake";
+  external getSystemFont: (float, fontWeight) => nsFont = "ml_FontGetSystem";
 };
 
 module NSColor = {
@@ -63,6 +75,14 @@ module NSView = {
     ) =>
     unit =
     "View_setBackgroundColor";
+  external setBorderRadius: (nsView, float) => unit =
+    "ml_NSViewSetBorderRadius";
+};
+
+module NSImageView = {
+  type imageView;
+  external make: nsRect => imageView = "ml_NSImageViewWithContentRect";
+  external setImage: (imageView, string) => unit = "ml_NSImageViewSetImage";
 };
 
 module NSButton = {

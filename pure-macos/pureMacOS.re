@@ -7,6 +7,7 @@ type id = int;
 type hostNative =
   | Window(nsWindow)
   | View(nsView)
+  | ImageView(NSImageView.imageView)
   | Text(TextView.textView)
   | Button(nsButton)
   | ScrollView(NSScrollView.nsScrollView);
@@ -24,7 +25,7 @@ module Node = {
   let nullContext = (View(Cocoa.NSView.make((0., 0., 0., 0.))), 0);
 };
 
-module PureLayout = Layout.Create(Node, FixedEncoding);
+module PureLayout = Layout.Create(Node, HardCodedEncoding);
 
 let globalId: ref(id) = ref(0);
 
@@ -66,6 +67,19 @@ let appendChildNode =
   PureLayout.LayoutSupport.markDirtyInternal(node);
 };
 
+let fontWeightToCocoa = (w: Pure.fontWeight): Font.fontWeight =>
+  switch (w) {
+  | Black => Black
+  | Bold => Bold
+  | Heavy => Heavy
+  | Light => Light
+  | Medium => Medium
+  | Regular => Regular
+  | Semibold => Semibold
+  | Thin => Thin
+  | UltraLight => UltraLight
+  };
+
 let rec applyLayout = (node: PureLayout.LayoutSupport.NodeType.node) => {
   let left = node.layout.left |> float_of_int;
   let top = node.layout.top |> float_of_int;
@@ -73,16 +87,6 @@ let rec applyLayout = (node: PureLayout.LayoutSupport.NodeType.node) => {
   let height = node.layout.height |> float_of_int;
 
   let (v, _) = node.context;
-  switch (v) {
-  | Text(_) =>
-    "Text"
-    ++ " Width: "
-    ++ string_of_float(width)
-    ++ " Height: "
-    ++ string_of_float(height)
-    |> print_endline
-  | _ => ()
-  };
 
   let view =
     switch (v) {
@@ -91,6 +95,7 @@ let rec applyLayout = (node: PureLayout.LayoutSupport.NodeType.node) => {
       TextView.setFrame(t, width);
       Obj.magic(t);
     | Button(v) => Obj.magic(v)
+    | ImageView(v) => Obj.magic(v)
     | Window(w) => w |> NSWindow.getContentView
     | ScrollView(s) => Obj.magic(s)
     };
@@ -120,11 +125,10 @@ let createTextStorage = props => {
     };
   let textStorage = TextStorage.make(text);
   let font =
-    switch (props.fontFamily, props.fontSize) {
-    | (Some(font), Some(size)) => Font.make(font, size)
-    | (Some(font), None) => Font.make(font, 12.0)
-    | (None, Some(size)) => Font.make("Helvetica", size)
-    | (None, None) => Font.make("Helvetica", 12.0)
+    switch (props.fontSize) {
+    | Some(size) =>
+      Font.getSystemFont(size, fontWeightToCocoa(props.fontWeight))
+    | None => Font.getSystemFont(12.0, fontWeightToCocoa(props.fontWeight))
     };
   TextStorage.setFont(textStorage, font);
   switch (props.fontColor) {
@@ -151,6 +155,10 @@ module Host: Reconciler.Spec.HostConfig = {
               NSView.setBackgroundColor(view, r, g, b, a)
             | None => ()
             };
+            switch (props.borderRadius) {
+            | Some(radius) => NSView.setBorderRadius(view, radius)
+            | None => ()
+            };
             View(view);
           | Text =>
             let textStorage = createTextStorage(props);
@@ -162,6 +170,23 @@ module Host: Reconciler.Spec.HostConfig = {
             | None => ()
             };
             Text(textView);
+          | Image =>
+            let view = NSImageView.make((0., 0., 200., 200.));
+            switch (props.src) {
+            | Some(src) => NSImageView.setImage(view, src)
+            | None => ()
+            };
+            switch (props.style.backgroundColor) {
+            | Some((r, g, b, a)) =>
+              NSView.setBackgroundColor(Obj.magic(view), r, g, b, a)
+            | None => ()
+            };
+            switch (props.borderRadius) {
+            | Some(radius) =>
+              NSView.setBorderRadius(Obj.magic(view), radius)
+            | None => ()
+            };
+            ImageView(view);
           | Button =>
             let button = NSButton.make((0., 0., 100., 100.));
             switch (props.title) {
@@ -180,22 +205,25 @@ module Host: Reconciler.Spec.HostConfig = {
               NSView.setBackgroundColor(Obj.magic(scrollView), r, g, b, a)
             | None => ()
             };
+            switch (props.borderRadius) {
+            | Some(radius) =>
+              NSView.setBorderRadius(Obj.magic(scrollView), radius)
+            | None => ()
+            };
             ScrollView(scrollView);
           | Window =>
-            let w = NSWindow.windowWithContentRect(0, (0., 0., 750., 436.));
+            let w = NSWindow.windowWithContentRect(0, (0., 0., 800., 550.));
+            switch (props.title) {
+            | Some(t) => NSWindow.setTitle(w, t)
+            | None => ()
+            };
             NSWindow.center(w);
-            /* NSWindow.setMinSize(w, (400., 400.)); */
+            NSWindow.setMinSize(w, (400., 400.));
             NSWindow.makeKeyAndOrderFront(w);
             NSWindow.windowDidResize(() => {
               let contentView = NSWindow.getContentView(w);
               let width = NSView.getWidth(contentView) |> int_of_float;
               let height = NSView.getHeight(contentView) |> int_of_float;
-              print_endline(
-                "Did resize w: "
-                ++ string_of_int(width)
-                ++ " h:"
-                ++ string_of_int(height),
-              );
               layout.contents(width, height);
             });
             Window(w);
@@ -203,21 +231,16 @@ module Host: Reconciler.Spec.HostConfig = {
 
         let node =
           switch (v) {
-          | Text(text) =>
+          | Text(_) =>
             let Nested(_, props, _) = element;
             PureLayout.LayoutSupport.createNode(
               ~withChildren=[||],
               ~andStyle=props.layout,
               ~andMeasure=
-                (node, w, wMeasureMode, h, hMeasureMode) => {
-                  print_endline("Measuring");
-                  print_endline(string_of_int(w));
-                  print_endline(string_of_int(h));
+                (_, w, _, _, _) => {
                   let textStorage = createTextStorage(props);
                   let (width, height) =
                     TextStorage.measure(textStorage, float_of_int(w), 0);
-                  print_endline(string_of_float(width));
-                  print_endline(string_of_float(height));
                   {
                     width: int_of_float(width),
                     height: int_of_float(height),
@@ -225,12 +248,6 @@ module Host: Reconciler.Spec.HostConfig = {
                 },
               (v, globalId.contents),
             );
-          | Window(win) =>
-            PureLayout.LayoutSupport.createNode(
-              ~withChildren=[||],
-              ~andStyle=props.layout,
-              (v, globalId.contents),
-            )
           | _ =>
             PureLayout.LayoutSupport.createNode(
               ~withChildren=[||],
@@ -274,6 +291,8 @@ module Host: Reconciler.Spec.HostConfig = {
     | (View(parent), View(node)) => NSView.addSubview(parent, node)
     | (View(parent), Text(node)) =>
       NSView.addSubview(parent, Obj.magic(node))
+    | (View(parent), ImageView(node)) =>
+      NSView.addSubview(parent, Obj.magic(node))
     | (View(parent), ScrollView(node)) =>
       NSView.addSubview(parent, Obj.magic(node))
     | (ScrollView(parent), View(node)) =>
@@ -295,14 +314,14 @@ module Host: Reconciler.Spec.HostConfig = {
     switch (parent, node) {
     | (_, View(node)) => NSView.removeFromSuperview(node)
     | (_, ScrollView(node)) => NSView.removeFromSuperview(Obj.magic(node))
-    | (View(parent), Button(node)) =>
+    | (View(_), Button(node)) =>
       NSView.removeFromSuperview(Obj.magic(node))
     | _ => ()
     };
 
     let (_, parentLayoutNode) =
       List.find(((id, _)) => id == parentId, layoutRoot.orphanNodes);
-    let (_, childLayoutNode) =
+    let (_, _childLayoutNode) =
       List.find(((id, _)) => id == nodeId, layoutRoot.orphanNodes);
 
     Array.length(parentLayoutNode.children) |> string_of_int |> print_endline;
@@ -317,7 +336,7 @@ module Host: Reconciler.Spec.HostConfig = {
     parentLayoutNode.childrenCount = parentLayoutNode.childrenCount - 1;
     Array.length(parentLayoutNode.children) |> string_of_int |> print_endline;
   };
-  let commitUpdate = ((node, nodeId), oldProps, props) => {
+  let commitUpdate = ((node, nodeId), _oldProps, props) => {
     let (_, n) =
       List.find(((id, _)) => id == nodeId, layoutRoot.orphanNodes);
     n.style = props.layout;
@@ -326,12 +345,12 @@ module Host: Reconciler.Spec.HostConfig = {
       switch (props.title) {
       | Some(title) => NSButton.setTitle(button, title)
       | None => ()
-      };
+      }
 
-      switch (props.onClick) {
-      | Some(c) => NSButton.setCallback(button, c)
-      | None => ()
-      };
+    /* switch (props.onClick) {
+       | Some(c) => NSButton.setCallback(button, c)
+       | None => ()
+       }; */
 
     | _ => ()
     };
