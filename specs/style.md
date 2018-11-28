@@ -24,6 +24,8 @@ We have a couple of styles divided in primitives:
 This should be the primitive for all style libraries and the primary way to communicate with the style api.
 This will include the primary `style` that will be used by the Flex library, and hosts implementations to implement styling.
 
+There is a small implementation ongoing over here [style](https://github.com/lpalmes/pure/blob/master/pure/style.re).
+
 The simplest operation would be a `Style.make` function with labeled default arguments.
 
 ```reason
