@@ -12,7 +12,7 @@ We have a couple of styles divided in primitives:
 - [Text](https://facebook.github.io/react-native/docs/text-style-props)
 - [Image](https://facebook.github.io/react-native/docs/image-style-props)
 
-## Other soltions (Js or Reason)
+## Other solutions (Js or Reason)
 
 - [jsxstyle](https://github.com/lpalmes/jsxnice)
 - [styled-components](https://github.com/styled-components/styled-components)
