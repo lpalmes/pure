@@ -1,5 +1,7 @@
 open Pure.Primitives;
 
+Pure.Style.make(~position=Absolute, ());
+
 module Test = {
   let white = (255., 255., 255., 1.0);
   let textBlack = (56., 68., 77., 1.0);
