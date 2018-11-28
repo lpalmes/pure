@@ -1,4 +1,4 @@
-open Pure;
+open Pure.Types;
 
 open Cocoa;
 
@@ -16,27 +16,35 @@ type hostNativeView = (hostNative, id);
 
 let viewTable = Hashtbl.create(2000);
 
-let layout: ref((LayoutTypes.unitOfM, LayoutTypes.unitOfM) => unit) =
-  ref((w, h) => print_endline("the layout function has not been replaced"));
-
 module Node = {
   type context = hostNativeView;
   /* Ignored - only needed to create the dummy instance. */
   let nullContext = (View(Cocoa.NSView.make((0., 0., 0., 0.))), 0);
 };
 
-module PureLayout = Layout.Create(Node, HardCodedEncoding);
+module PureLayout = Flex.Layout.Create(Node, Flex.FloatEncoding);
+type node = PureLayout.LayoutSupport.LayoutTypes.node;
+
+let layout:
+  ref(
+    (
+      PureLayout.LayoutSupport.LayoutTypes.unitOfM,
+      PureLayout.LayoutSupport.LayoutTypes.unitOfM
+    ) =>
+    unit,
+  ) =
+  ref((_, _) => print_endline("the layout function has not been replaced"));
 
 let globalId: ref(id) = ref(0);
 
 type layoutNode = {
-  node: PureLayout.LayoutSupport.NodeType.node,
+  node,
   id,
 };
 
 type layoutRoot = {
   mutable rootNode: layoutNode,
-  mutable orphanNodes: list((id, PureLayout.LayoutSupport.NodeType.node)),
+  mutable orphanNodes: list((id, PureLayout.LayoutSupport.LayoutTypes.node)),
 };
 
 let layoutRoot = {
@@ -44,7 +52,7 @@ let layoutRoot = {
     node:
       PureLayout.LayoutSupport.createNode(
         ~withChildren=[||],
-        ~andStyle=LayoutSupport.defaultStyle,
+        ~andStyle=PureLayout.LayoutSupport.defaultStyle,
         (View(Cocoa.NSView.make((0., 0., 0., 0.))), 0),
       ),
     id: 0,
@@ -52,11 +60,7 @@ let layoutRoot = {
   orphanNodes: [],
 };
 
-let appendChildNode =
-    (
-      node: PureLayout.LayoutSupport.NodeType.node,
-      child: PureLayout.LayoutSupport.NodeType.node,
-    ) => {
+let appendChildNode = (node: node, child: node) => {
   open PureLayout.LayoutSupport;
   open LayoutTypes;
   assert(child.parent === theNullNode);
@@ -67,7 +71,7 @@ let appendChildNode =
   PureLayout.LayoutSupport.markDirtyInternal(node);
 };
 
-let fontWeightToCocoa = (w: Pure.fontWeight): Font.fontWeight =>
+let fontWeightToCocoa = (w: Pure.Types.fontWeight): Font.fontWeight =>
   switch (w) {
   | Black => Black
   | Bold => Bold
@@ -80,7 +84,7 @@ let fontWeightToCocoa = (w: Pure.fontWeight): Font.fontWeight =>
   | UltraLight => UltraLight
   };
 
-let rec applyLayout = (node: PureLayout.LayoutSupport.NodeType.node) => {
+let rec applyLayout = (node: node) => {
   let left = node.layout.left |> float_of_int;
   let top = node.layout.top |> float_of_int;
   let width = node.layout.width |> float_of_int;
@@ -104,19 +108,22 @@ let rec applyLayout = (node: PureLayout.LayoutSupport.NodeType.node) => {
 
   Array.iter(applyLayout, node.children);
 };
-let perfomLayout = (w, h) => {
-  let (Window(window), _) = layoutRoot.rootNode.node.context;
-  let contentView = NSWindow.getContentView(window);
-  let width = NSView.getWidth(contentView) |> int_of_float;
-  let height = NSView.getHeight(contentView) |> int_of_float;
-  PureLayout.layoutNode(layoutRoot.rootNode.node, width, height, Ltr);
-  /* PureLayout.LayoutPrint.printCssNode((
-       layoutRoot.rootNode.node,
-       {printLayout: true, printStyle: false, printChildren: true},
-     )); */
-  /* List.length(layoutRoot.orphanNodes) |> string_of_int |> print_endline; */
-  applyLayout(layoutRoot.rootNode.node);
-};
+let perfomLayout = (_w, _h) =>
+  switch (layoutRoot.rootNode.node.context) {
+  | (Window(window), _) =>
+    let contentView = NSWindow.getContentView(window);
+    let width = NSView.getWidth(contentView) |> int_of_float;
+    let height = NSView.getHeight(contentView) |> int_of_float;
+    PureLayout.layoutNode(layoutRoot.rootNode.node, width, height, Ltr);
+    /* PureLayout.LayoutPrint.printCssNode((
+         layoutRoot.rootNode.node,
+         {printLayout: true, printStyle: false, printChildren: true},
+       )); */
+    /* List.length(layoutRoot.orphanNodes) |> string_of_int |> print_endline; */
+    applyLayout(layoutRoot.rootNode.node);
+
+  | _ => ()
+  };
 let createTextStorage = props => {
   let text =
     switch (props.title) {
@@ -230,12 +237,11 @@ module Host: Reconciler.Spec.HostConfig = {
           };
 
         let node =
-          switch (v) {
-          | Text(_) =>
-            let Nested(_, props, _) = element;
+          switch (v, element) {
+          | (Text(_), Nested(_, props, _)) =>
             PureLayout.LayoutSupport.createNode(
               ~withChildren=[||],
-              ~andStyle=props.layout,
+              ~andStyle=Obj.magic(props.layout),
               ~andMeasure=
                 (_, w, _, _, _) => {
                   let textStorage = createTextStorage(props);
@@ -247,11 +253,11 @@ module Host: Reconciler.Spec.HostConfig = {
                   };
                 },
               (v, globalId.contents),
-            );
+            )
           | _ =>
             PureLayout.LayoutSupport.createNode(
               ~withChildren=[||],
-              ~andStyle=props.layout,
+              ~andStyle=Obj.magic(props.layout),
               (v, globalId.contents),
             )
           };
@@ -279,7 +285,7 @@ module Host: Reconciler.Spec.HostConfig = {
     let node =
       PureLayout.LayoutSupport.createNode(
         ~withChildren=[||],
-        ~andStyle=LayoutSupport.defaultStyle,
+        ~andStyle=PureLayout.LayoutSupport.defaultStyle,
         (v, id),
       );
     layoutRoot.orphanNodes = [(id, node), ...layoutRoot.orphanNodes];
@@ -328,7 +334,7 @@ module Host: Reconciler.Spec.HostConfig = {
     parentLayoutNode.children =
       parentLayoutNode.children
       |> Array.to_list
-      |> List.filter((node: PureLayout.LayoutSupport.NodeType.node) => {
+      |> List.filter((node: node) => {
            let (_, id) = node.context;
            id != nodeId;
          })
@@ -339,7 +345,7 @@ module Host: Reconciler.Spec.HostConfig = {
   let commitUpdate = ((node, nodeId), _oldProps, props) => {
     let (_, n) =
       List.find(((id, _)) => id == nodeId, layoutRoot.orphanNodes);
-    n.style = props.layout;
+    n.style = Obj.magic(props.layout);
     switch (node) {
     | Button(button) =>
       switch (props.title) {
@@ -356,7 +362,10 @@ module Host: Reconciler.Spec.HostConfig = {
     };
   };
   let afterCommit = () =>
-    perfomLayout(FixedEncoding.cssUndefined, FixedEncoding.cssUndefined);
+    perfomLayout(
+      Flex.FloatEncoding.cssUndefined,
+      Flex.FloatEncoding.cssUndefined,
+    );
 };
 
 module MacOSReconciler = Reconciler.Make(Host);
@@ -367,7 +376,10 @@ let render = (pureElement: pureElement) => {
   let app = Lazy.force(NSApplication.app);
   app#applicationWillFinishLaunching(() => {
     MacOSReconciler.render(pureElement);
-    perfomLayout(FixedEncoding.cssUndefined, FixedEncoding.cssUndefined);
+    perfomLayout(
+      Flex.FloatEncoding.cssUndefined,
+      Flex.FloatEncoding.cssUndefined,
+    );
   });
   app#run;
 };

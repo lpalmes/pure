@@ -1,7 +1,13 @@
-/lib
+lib
 node_modules
 .DS_Store
 .bsb.lock
 .cache
 .merlin
 dist
+_build
+_release
+_esy
+*.byte
+*.native
+*.install

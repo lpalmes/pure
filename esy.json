@@ -1,0 +1,22 @@
+{
+  "name": "pure",
+  "version": "1.0.0",
+  "esy": {
+    "build": [["dune", "build"]],
+    "buildsInSource": "_build"
+  },
+  "scripts": {
+    "build:dev": "refmterr dune build --no-buffer",
+    "clean": "dune clean",
+    "test": "esy x LayoutTestFixedEncoding && esy x MeasureTestFixedEncoding"
+  },
+  "dependencies": {
+    "@esy-ocaml/reason": "*",
+    "@opam/dune": "*",
+    "flex": "^1.2.2",
+    "ocaml": "~4.6.0",
+    "refmterr": "*"
+  },
+  "resolutions": { "@esy-ocaml/esy-installer": "0.0.1" },
+  "devDependencies": { "@esy-ocaml/merlin": "*", "ocaml": "~4.6.0" }
+}

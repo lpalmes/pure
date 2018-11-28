@@ -1,0 +1,4 @@
+(library
+  (name Pure)
+  (public_name pure)
+  (libraries Flex))

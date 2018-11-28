@@ -1,0 +1,14 @@
+(library
+ (name cocoa)
+ (c_names cocoa_stubs)
+ (c_flags (:standard 
+    (-Wextra 
+     -Wall 
+     -O 
+     -g 
+     -std=c99 
+     -pedantic-errors 
+     -Wsign-compare 
+     -Wshadow) 
+     (-x objective-c)))
+ (c_library_flags (-framework Cocoa)))

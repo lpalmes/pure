@@ -1,0 +1,4 @@
+(executable
+  (name PureNoop)
+  (public_name PureNoop.exe)
+  (libraries Pure Reconciler findlib.dynload))

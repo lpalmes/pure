@@ -1,11 +1,12 @@
-open Pure;
+open Pure.Types;
+open Pure.Primitives;
 
 module Tree = {
   let referenceId = ref(0);
 
   type node =
     | String(string)
-    | Host(Pure.primitive);
+    | Host(Pure.Types.primitive);
 
   type element = {
     id: int,
@@ -44,6 +45,8 @@ module Tree = {
         | Text => "Text"
         | Button => "Button"
         | Window => "Window"
+        | ScrollView => "ScrollView"
+        | Image => "Image"
         }
       )
       ++ ")"
@@ -82,7 +85,7 @@ module Host: Reconciler.Spec.HostConfig = {
     | _ => assert(false)
     };
   let createTextInstance = value => Tree.createTextElement(value);
-  let commitUpdate = (node, oldProps, props) => ();
+  let commitUpdate = (_node, _oldProps, _props) => ();
   let appendChild = Tree.addChild;
   let removeChild = Tree.removeChild;
 
@@ -98,7 +101,6 @@ Tree.compareTrees(rootA, rootB);
 
 /* Tree.printTree(rootA, 0); */
 
-open PurePrimitives;
 let listOfNumbers =
   <view>
     <button />
