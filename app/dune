@@ -1,0 +1,4 @@
+(executable
+  (name main)
+  (libraries PureMacOS Pure findlib.dynload)
+  (public_name main))

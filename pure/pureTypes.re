@@ -1,18 +1,3 @@
-type color = (float, float, float, float);
-
-type style = {backgroundColor: option(color)};
-
-type fontWeight =
-  | Black
-  | Bold
-  | Heavy
-  | Light
-  | Medium
-  | Regular
-  | Semibold
-  | Thin
-  | UltraLight;
-
 type props = {
   id: option(string),
   value: option(string),
@@ -22,13 +7,7 @@ type props = {
   disabled: option(bool),
   onClick: option(unit => unit),
   onChangeText: option(string => unit),
-  fontFamily: option(string),
-  fontSize: option(float),
-  fontColor: option(color),
-  fontWeight,
-  borderRadius: option(float),
-  layout: PureLayout.LayoutSupport.LayoutTypes.cssStyle,
-  style,
+  style: option(Style.style),
 };
 
 type primitive =

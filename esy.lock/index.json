@@ -1,5 +1,5 @@
 {
-  "checksum": "00ed803b1f7a0b51a7a8e4584632420e",
+  "checksum": "b6e06f68ab5a85e2bd7078df3789da46",
   "root": "pure@link:./esy.json",
   "node": {
     "refmterr@3.1.10": {
@@ -26,7 +26,7 @@
       "source": { "type": "link", "path": ".", "manifest": "esy.json" },
       "overrides": [],
       "dependencies": [
-        "refmterr@3.1.10", "ocaml@4.6.9", "flex@1.2.2",
+        "refmterr@3.1.10", "ocaml@4.6.9", "flex@github:lpalmes/flex#ad6004d",
         "@opam/dune@opam:1.5.1@e03be456", "@esy-ocaml/reason@3.3.7"
       ],
       "devDependencies": [ "@esy-ocaml/merlin@3.0.5005" ]
@@ -45,19 +45,17 @@
       "dependencies": [],
       "devDependencies": []
     },
-    "flex@1.2.2": {
-      "id": "flex@1.2.2",
+    "flex@github:lpalmes/flex#ad6004d": {
+      "id": "flex@github:lpalmes/flex#ad6004d",
       "name": "flex",
-      "version": "1.2.2",
+      "version": "github:lpalmes/flex#ad6004d",
       "source": {
         "type": "install",
-        "source": [
-          "archive:https://registry.npmjs.org/flex/-/flex-1.2.2.tgz#sha1:6b46058d8c909f9ec1ece18ed21b28ae5e611b3e"
-        ]
+        "source": [ "github:lpalmes/flex#ad6004d" ]
       },
       "overrides": [],
       "dependencies": [
-        "refmterr@3.1.10", "ocaml@4.6.9", "@opam/dune@opam:1.5.1@e03be456",
+        "ocaml@4.6.9", "@opam/dune@opam:1.5.1@e03be456",
         "@esy-ocaml/reason@3.3.7"
       ],
       "devDependencies": []
@@ -69,6 +67,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/3e/3ea6e36422dd670e8ab880710d5f7398#md5:3ea6e36422dd670e8ab880710d5f7398",
           "archive:https://github.com/mjambon/yojson/archive/v1.4.1.tar.gz#md5:3ea6e36422dd670e8ab880710d5f7398"
         ],
         "opam": {
@@ -93,6 +92,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/4b/4beebefd41f7f899b6eeba7414e7ae01#md5:4beebefd41f7f899b6eeba7414e7ae01",
           "archive:https://github.com/janestreet/result/releases/download/1.3/result-1.3.tbz#md5:4beebefd41f7f899b6eeba7414e7ae01"
         ],
         "opam": {
@@ -115,6 +115,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/d2/d2a74ca77216861bce4449600a132de9#md5:d2a74ca77216861bce4449600a132de9",
           "archive:https://github.com/ocaml/ocaml-re/releases/download/1.7.3/re-1.7.3.tbz#md5:d2a74ca77216861bce4449600a132de9"
         ],
         "opam": {
@@ -137,8 +138,9 @@
       "source": {
         "type": "install",
         "source": [
-          "archive:http://download.camlcity.org/download/findlib-1.8.0.tar.gz#md5:a710c559667672077a93d34eb6a42e5b",
-          "archive:http://download2.camlcity.org/download/findlib-1.8.0.tar.gz#md5:a710c559667672077a93d34eb6a42e5b"
+          "archive:https://opam.ocaml.org/cache/md5/a7/a710c559667672077a93d34eb6a42e5b#md5:a710c559667672077a93d34eb6a42e5b",
+          "archive:http://download2.camlcity.org/download/findlib-1.8.0.tar.gz#md5:a710c559667672077a93d34eb6a42e5b",
+          "archive:http://download.camlcity.org/download/findlib-1.8.0.tar.gz#md5:a710c559667672077a93d34eb6a42e5b"
         ],
         "opam": {
           "name": "ocamlfind",
@@ -162,6 +164,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/44/442baa19470bd49150f153122e22907b#md5:442baa19470bd49150f153122e22907b",
           "archive:https://github.com/ocaml/ocamlbuild/archive/0.12.0.tar.gz#md5:442baa19470bd49150f153122e22907b"
         ],
         "opam": {
@@ -183,6 +186,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/7d/7dd4808e27af98065f63604c9658d311#md5:7dd4808e27af98065f63604c9658d311",
           "archive:https://github.com/ocaml-ppx/ocaml-migrate-parsetree/releases/download/v1.1.0/ocaml-migrate-parsetree-1.1.0.tbz#md5:7dd4808e27af98065f63604c9658d311"
         ],
         "opam": {
@@ -205,6 +209,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/9c/9c6dfd4f53328f02f12fcc265f4e2dda#md5:9c6dfd4f53328f02f12fcc265f4e2dda",
           "archive:https://github.com/let-def/merlin-extend/archive/v0.3.tar.gz#md5:9c6dfd4f53328f02f12fcc265f4e2dda"
         ],
         "opam": {
@@ -229,6 +234,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/69/69ce441a06ea131cd43e7b44c4303f3c#md5:69ce441a06ea131cd43e7b44c4303f3c",
           "archive:https://gitlab.inria.fr/fpottier/menhir/repository/20181113/archive.tar.gz#md5:69ce441a06ea131cd43e7b44c4303f3c"
         ],
         "opam": {
@@ -271,6 +277,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/4e/4e163700fb88fdcd6b8976c3a216c8ea#md5:4e163700fb88fdcd6b8976c3a216c8ea",
           "archive:https://github.com/mjambon/easy-format/archive/v1.3.1.tar.gz#md5:4e163700fb88fdcd6b8976c3a216c8ea"
         ],
         "opam": {
@@ -293,6 +300,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/07/071ff387b85e08bdfd49dee728dc8358#md5:071ff387b85e08bdfd49dee728dc8358",
           "archive:https://github.com/ocaml/dune/releases/download/1.5.1/dune-1.5.1.tbz#md5:071ff387b85e08bdfd49dee728dc8358"
         ],
         "opam": {
@@ -312,6 +320,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/1c/1cd25741d31417995b0973fe0b6f6c82#md5:1cd25741d31417995b0973fe0b6f6c82",
           "archive:https://github.com/mjambon/cppo/archive/v1.6.5.tar.gz#md5:1cd25741d31417995b0973fe0b6f6c82"
         ],
         "opam": {
@@ -368,6 +377,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/f3/f3e92358e832ed94eaf23ce622ccc2f9#md5:f3e92358e832ed94eaf23ce622ccc2f9",
           "archive:https://github.com/mjambon/biniou/archive/v1.2.0.tar.gz#md5:f3e92358e832ed94eaf23ce622ccc2f9"
         ],
         "opam": {

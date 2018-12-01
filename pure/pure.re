@@ -1,6 +1,5 @@
 module Types = PureTypes;
 module Primitives = PurePrimitives;
-module Layout = PureLayout;
 module Style = Style;
 open Types;
 let basicComponent = (debugName): componentSpec(_, _, _) => {

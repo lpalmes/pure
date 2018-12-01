@@ -1,7 +1,4 @@
 open PureTypes;
-let defaultLayout = PureLayout.LayoutSupport.defaultStyle;
-
-let defaultStyle: style = {backgroundColor: None};
 
 let defaultProps: PureTypes.props = {
   id: None,
@@ -12,13 +9,7 @@ let defaultProps: PureTypes.props = {
   src: None,
   onClick: None,
   onChangeText: None,
-  fontFamily: None,
-  fontSize: None,
-  fontWeight: PureTypes.Regular,
-  fontColor: None,
-  borderRadius: None,
-  layout: defaultLayout,
-  style: defaultStyle,
+  style: None,
 };
 
 let createNativeElement =
@@ -29,33 +20,13 @@ let createNativeElement =
       ~title: option(string)=?,
       ~src: option(string)=?,
       ~onClick: option(unit => unit)=?,
-      ~layout=defaultLayout,
-      ~style=defaultStyle,
+      ~style: option(Style.style)=?,
       ~children: list(pureElement),
-      ~borderRadius: option(float)=?,
-      ~fontFamily: option(string)=?,
-      ~fontSize: option(float)=?,
-      ~fontColor: option(color)=?,
-      ~fontWeight: PureTypes.fontWeight=PureTypes.Regular,
       _: unit,
     ) =>
   Nested(
     nativeElement,
-    {
-      ...defaultProps,
-      id,
-      value,
-      onClick,
-      layout,
-      style,
-      src,
-      title,
-      fontFamily,
-      borderRadius,
-      fontSize,
-      fontColor,
-      fontWeight,
-    },
+    {...defaultProps, id, value, onClick, style, src, title},
     children,
   );
 

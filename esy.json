@@ -17,6 +17,9 @@
     "ocaml": "~4.6.0",
     "refmterr": "*"
   },
-  "resolutions": { "@esy-ocaml/esy-installer": "0.0.1" },
+  "resolutions": {
+    "@esy-ocaml/esy-installer": "0.0.1",
+    "flex": "lpalmes/flex#ad6004d"
+  },
   "devDependencies": { "@esy-ocaml/merlin": "*", "ocaml": "~4.6.0" }
 }

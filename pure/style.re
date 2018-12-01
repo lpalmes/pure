@@ -1,3 +1,45 @@
+type color = (float, float, float, float);
+
+type fontWeight =
+  | Black
+  | Bold
+  | Heavy
+  | Light
+  | Medium
+  | Regular
+  | Semibold
+  | Thin
+  | UltraLight;
+
+type fontStyle =
+  | Normal
+  | Italic;
+
+type textAlign =
+  | Auto
+  | Left
+  | Right
+  | Center
+  | Justify;
+type textDecorationLine =
+  | None
+  | Underline
+  | LineThrough
+  | UnderlineLineThrough;
+
+type imageResizeMode =
+  | Contain
+  | Cover
+  | Stretch
+  | Center
+  | Repeat;
+
+type textDecorationStyle =
+  | Solid
+  | Double
+  | Dotted
+  | Dashed;
+
 type edge =
   | Left
   | Top
@@ -60,6 +102,16 @@ type dimensions = {
   width: float,
   height: float,
 };
+
+type backfaceVisibility =
+  | None
+  | Visible
+  | Hidden;
+
+type borderStyle =
+  | Solid
+  | Dotted
+  | Dashed;
 
 type coordinates = {
   left: float,
@@ -137,6 +189,48 @@ type style = {
   borderHorizontal: float,
   borderVertical: float,
   border: float,
+  /* View style */
+  backfaceVisibility,
+  backgroundColor: option(Color.color),
+  borderBottomColor: option(string),
+  borderBottomLeftRadius: option(float),
+  borderBottomRightRadius: option(float),
+  borderBottomWidth: option(float),
+  borderColor: option(Color.color),
+  borderLeftColor: option(Color.color),
+  borderRadius: option(float),
+  borderRightColor: option(Color.color),
+  borderRightWidth: option(float),
+  borderStyle,
+  borderTopColor: option(Color.color),
+  borderTopLeftRadius: option(float),
+  borderTopRightRadius: option(float),
+  borderTopWidth: option(float),
+  opacity: option(float),
+  shadowColor: option(Color.color),
+  shadowOffset: option(dimensions),
+  shadowOpacity: option(float),
+  shadowRadius: option(float),
+  elevation: option(float),
+  /* Text Style */
+  color: option(Color.color),
+  fontFamily: option(string),
+  fontSize: option(float),
+  fontStyle: option(fontStyle),
+  fontWeight: option(fontWeight),
+  letterSpacing: option(float),
+  lineHeight: option(float),
+  textAlign: option(textAlign),
+  textDecorationLine: option(textDecorationLine),
+  textDecorationStyle: option(textDecorationStyle),
+  textDecorationColor: option(Color.color),
+  textShadowColor: option(Color.color),
+  textShadowOffset: option(dimensions),
+  textShadowRadius: option(float),
+  /* Image Style */
+  resizeMode: option(imageResizeMode),
+  overlayColor: option(Color.color),
+  tintColor: option(Color.color),
 };
 
 let cssUndefined = nan;
@@ -196,6 +290,48 @@ let defaultStyle = {
   borderHorizontal: cssUndefined,
   borderVertical: cssUndefined,
   border: cssUndefined,
+  /* View Defaults */
+  backfaceVisibility: None,
+  backgroundColor: None,
+  borderBottomColor: None,
+  borderBottomLeftRadius: None,
+  borderBottomRightRadius: None,
+  borderBottomWidth: None,
+  borderColor: None,
+  borderLeftColor: None,
+  borderRadius: None,
+  borderRightColor: None,
+  borderRightWidth: None,
+  borderStyle: Solid,
+  borderTopColor: None,
+  borderTopLeftRadius: None,
+  borderTopRightRadius: None,
+  borderTopWidth: None,
+  opacity: None,
+  shadowColor: None,
+  shadowOffset: None,
+  shadowOpacity: None,
+  shadowRadius: None,
+  elevation: None,
+  /* Text Defaults */
+  color: None,
+  fontFamily: None,
+  fontSize: None,
+  fontStyle: None,
+  fontWeight: None,
+  letterSpacing: None,
+  lineHeight: None,
+  textAlign: None,
+  textDecorationLine: None,
+  textDecorationStyle: None,
+  textDecorationColor: None,
+  textShadowColor: None,
+  textShadowOffset: None,
+  textShadowRadius: None,
+  /* Image Style */
+  resizeMode: None,
+  overlayColor: None,
+  tintColor: None,
 };
 
 let make =
@@ -208,7 +344,7 @@ let make =
       ~alignSelf=Auto,
       ~position=Relative,
       ~flexWrap=NoWrap,
-      ~overflow=Visible,
+      ~overflow: overflow=Visible,
       ~flex=cssUndefined,
       ~flexGrow=cssUndefined,
       ~flexShrink=cssUndefined,
@@ -254,8 +390,48 @@ let make =
       ~borderHorizontal=cssUndefined,
       ~borderVertical=cssUndefined,
       ~border=cssUndefined,
+      ~backfaceVisibility=None,
+      ~backgroundColor=?,
+      ~borderBottomColor=?,
+      ~borderBottomLeftRadius=?,
+      ~borderBottomRightRadius=?,
+      ~borderBottomWidth=?,
+      ~borderColor=?,
+      ~borderLeftColor=?,
+      ~borderRadius=?,
+      ~borderRightColor=?,
+      ~borderRightWidth=?,
+      ~borderStyle=Solid,
+      ~borderTopColor=?,
+      ~borderTopLeftRadius=?,
+      ~borderTopRightRadius=?,
+      ~borderTopWidth=?,
+      ~opacity=?,
+      ~shadowColor=?,
+      ~shadowOffset=?,
+      ~shadowOpacity=?,
+      ~shadowRadius=?,
+      ~elevation=?,
+      ~color=?,
+      ~fontFamily=?,
+      ~fontSize=?,
+      ~fontStyle=?,
+      ~fontWeight=?,
+      ~letterSpacing=?,
+      ~lineHeight=?,
+      ~textAlign=?,
+      ~textDecorationLine=?,
+      ~textDecorationStyle=?,
+      ~textDecorationColor=?,
+      ~textShadowColor=?,
+      ~textShadowOffset=?,
+      ~textShadowRadius=?,
+      ~resizeMode=?,
+      ~overlayColor=?,
+      ~tintColor=?,
       (),
-    ) => {
+    )
+    : style => {
   direction,
   flexDirection,
   justifyContent,
@@ -310,4 +486,43 @@ let make =
   borderHorizontal,
   borderVertical,
   border,
+  backfaceVisibility,
+  backgroundColor,
+  borderBottomColor,
+  borderBottomLeftRadius,
+  borderBottomRightRadius,
+  borderBottomWidth,
+  borderColor,
+  borderLeftColor,
+  borderRadius,
+  borderRightColor,
+  borderRightWidth,
+  borderStyle,
+  borderTopColor,
+  borderTopLeftRadius,
+  borderTopRightRadius,
+  borderTopWidth,
+  opacity,
+  shadowColor,
+  shadowOffset,
+  shadowOpacity,
+  shadowRadius,
+  elevation,
+  color,
+  fontFamily,
+  fontSize,
+  fontStyle,
+  fontWeight,
+  letterSpacing,
+  lineHeight,
+  textAlign,
+  textDecorationLine,
+  textDecorationStyle,
+  textDecorationColor,
+  textShadowColor,
+  textShadowOffset,
+  textShadowRadius,
+  resizeMode,
+  overlayColor,
+  tintColor,
 };

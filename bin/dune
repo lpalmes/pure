@@ -1,4 +1,0 @@
-(executable
-  (name hello)
-  (libraries PureMacOS Pure)
-  (public_name hello))
