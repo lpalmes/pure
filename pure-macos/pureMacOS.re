@@ -1,53 +1,14 @@
 open Pure.Types;
-open Types;
 
 open Cocoa;
 
-let viewTable = Hashtbl.create(2000);
-
-module PureLayout = PureFlex;
-
-type node = PureFlex.LayoutSupport.LayoutTypes.node;
-
-let layout: ref(unit => unit) =
-  ref(() => print_endline("the layout function has not been replaced"));
-
-let globalId: ref(int) = ref(0);
-
-type layoutNode = {
-  node,
-  id: int,
-};
-
-type layoutRoot = {
-  mutable rootNode: layoutNode,
-  mutable orphanNodes:
-    list((int, PureLayout.LayoutSupport.LayoutTypes.node)),
-};
-
-let layoutRoot = {
-  rootNode: {
-    node:
-      PureLayout.LayoutSupport.createNode(
-        ~withChildren=[||],
-        ~andStyle=PureLayout.LayoutSupport.defaultStyle,
-        (View(Cocoa.NSView.make((0., 0., 0., 0.))), 0),
-      ),
-    id: 0,
-  },
-  orphanNodes: [],
-};
-
-let appendChildNode = (node: node, child: node) => {
-  open PureLayout.LayoutSupport;
-  open LayoutTypes;
-  assert(child.parent === theNullNode);
-  /* assert(node.measure === None); */
-  node.children = Array.append(node.children, [|child|]);
-  node.childrenCount = node.childrenCount + 1;
-  child.parent = node;
-  PureLayout.LayoutSupport.markDirtyInternal(node);
-};
+type hostNative =
+  | Window(nsWindow)
+  | View(nsView)
+  | ImageView(NSImageView.imageView)
+  | Text(TextView.textView)
+  | Button(nsButton)
+  | ScrollView(NSScrollView.nsScrollView);
 
 let fontWeightToCocoa = (w: Pure.Style.fontWeight): Font.fontWeight =>
   switch (w) {
@@ -62,46 +23,6 @@ let fontWeightToCocoa = (w: Pure.Style.fontWeight): Font.fontWeight =>
   | UltraLight => UltraLight
   };
 
-let rec applyLayout = (node: node) => {
-  let left = node.layout.left;
-  let top = node.layout.top;
-  let width = node.layout.width;
-  let height = node.layout.height;
-
-  let (v, _) = node.context;
-
-  let view =
-    switch (v) {
-    | View(v) => v
-    | Text(t) =>
-      TextView.setFrame(t, width);
-      Obj.magic(t);
-    | Button(v) => Obj.magic(v)
-    | ImageView(v) => Obj.magic(v)
-    | Window(w) => w |> NSWindow.getContentView
-    | ScrollView(s) => Obj.magic(s)
-    };
-
-  NSView.setRect(view, (left, top, width, height));
-
-  Array.iter(applyLayout, node.children);
-};
-let perfomLayout = () =>
-  switch (layoutRoot.rootNode.node.context) {
-  | (Window(window), _) =>
-    let contentView = NSWindow.getContentView(window);
-    let width = NSView.getWidth(contentView);
-    let height = NSView.getHeight(contentView);
-    PureLayout.layoutNode(layoutRoot.rootNode.node, width, height, Ltr);
-    /* PureLayout.LayoutPrint.printCssNode((
-         layoutRoot.rootNode.node,
-         {printLayout: true, printStyle: true, printChildren: true},
-       )); */
-    /* List.length(layoutRoot.orphanNodes) |> string_of_int |> print_endline; */
-    applyLayout(layoutRoot.rootNode.node);
-
-  | _ => ()
-  };
 let createTextStorage = props => {
   let text =
     switch (props.title) {
@@ -129,174 +50,110 @@ let createTextStorage = props => {
   textStorage;
 };
 
-module Host: Reconciler.Spec.HostConfig = {
-  type hostNode = hostNativeView;
-  let createInstance = element => {
-    globalId := globalId.contents + 1;
-    let (view, node) =
-      switch (element) {
-      | Nested(primitive, props, _) =>
-        let v =
-          switch (primitive) {
-          | View =>
-            let view = NSView.make((0., 0., 0., 0.));
-            switch (props.style) {
-            | Some(style) =>
-              switch (style.backgroundColor) {
-              | Some(Rgba(r, g, b, a)) =>
-                NSView.setBackgroundColor(view, r, g, b, a)
-              | _ => ()
-              };
-              switch (style.borderRadius) {
-              | Some(radius) => NSView.setBorderRadius(view, radius)
-              | None => ()
-              };
+module Host: Reconciler_plus_layout.Spec.HostConfig = {
+  type hostNode = hostNative;
+  let createInstance = element =>
+    switch (element) {
+    | Nested(primitive, props, _) =>
+      let v =
+        switch (primitive) {
+        | View =>
+          let view = NSView.make((0., 0., 0., 0.));
+          switch (props.style) {
+          | Some(style) =>
+            switch (style.backgroundColor) {
+            | Some(Rgba(r, g, b, a)) =>
+              NSView.setBackgroundColor(view, r, g, b, a)
+            | _ => ()
+            };
+            switch (style.borderRadius) {
+            | Some(radius) => NSView.setBorderRadius(view, radius)
             | None => ()
             };
-            View(view);
-          | Text =>
-            let textStorage = createTextStorage(props);
-            let textView = TextView.make((0., 0., 0., 0.));
-            TextView.setTextStorage(textView, textStorage);
-            switch (props.style) {
-            | Some(style) =>
-              switch (style.backgroundColor) {
-              | Some(Rgba(r, g, b, a)) =>
-                NSView.setBackgroundColor(Obj.magic(textView), r, g, b, a)
-              | _ => ()
-              }
-            | None => ()
-            };
-            Text(textView);
-          | Image =>
-            let view = NSImageView.make((0., 0., 200., 200.));
-            switch (props.src) {
-            | Some(src) => NSImageView.setImage(view, src)
-            | None => ()
-            };
-            switch (props.style) {
-            | Some(style) =>
-              switch (style.backgroundColor) {
-              | Some(Rgba(r, g, b, a)) =>
-                NSView.setBackgroundColor(Obj.magic(view), r, g, b, a)
-              | _ => ()
-              };
-              switch (style.borderRadius) {
-              | Some(radius) =>
-                NSView.setBorderRadius(Obj.magic(view), radius)
-              | None => ()
-              };
-            | None => ()
-            };
-            ImageView(view);
-          | Button =>
-            let button = NSButton.make((0., 0., 100., 100.));
-            switch (props.title) {
-            | Some(v) => NSButton.setTitle(button, v)
-            | None => ()
-            };
-            switch (props.onClick) {
-            | Some(c) => NSButton.setCallback(button, c)
-            | None => ()
-            };
-            Button(button);
-          | ScrollView =>
-            let scrollView = NSScrollView.make((0., 0., 0., 0.));
-            switch (props.style) {
-            | Some(style) =>
-              switch (style.backgroundColor) {
-              | Some(Rgba(r, g, b, a)) =>
-                NSView.setBackgroundColor(Obj.magic(scrollView), r, g, b, a)
-              | _ => ()
-              };
-              switch (style.borderRadius) {
-              | Some(radius) =>
-                NSView.setBorderRadius(Obj.magic(scrollView), radius)
-              | None => ()
-              };
-            | None => ()
-            };
-            ScrollView(scrollView);
-          | Window =>
-            let w = NSWindow.windowWithContentRect(0, (0., 0., 800., 550.));
-            switch (props.title) {
-            | Some(t) => NSWindow.setTitle(w, t)
-            | None => ()
-            };
-            NSWindow.center(w);
-            NSWindow.setMinSize(w, (400., 400.));
-            NSWindow.makeKeyAndOrderFront(w);
-            NSWindow.windowDidResize(() => layout.contents());
-            Window(w);
+          | None => ()
           };
-
-        let style =
-          (
-            switch (props.style) {
-            | Some(s) => s
-            | None => Pure.Style.defaultStyle
+          View(view);
+        | Text =>
+          let textStorage = createTextStorage(props);
+          let textView = TextView.make((0., 0., 0., 0.));
+          TextView.setTextStorage(textView, textStorage);
+          switch (props.style) {
+          | Some(style) =>
+            switch (style.backgroundColor) {
+            | Some(Rgba(r, g, b, a)) =>
+              NSView.setBackgroundColor(Obj.magic(textView), r, g, b, a)
+            | _ => ()
             }
-          )
-          |> PureFlex.styleToLayoutStyle;
-
-        let node =
-          switch (v, element) {
-          | (Text(_), Nested(_, props, _)) =>
-            PureLayout.LayoutSupport.createNode(
-              ~withChildren=[||],
-              ~andStyle=style,
-              ~andMeasure=
-                (_, w, _, _, _) => {
-                  let textStorage = createTextStorage(props);
-                  let (width, height) =
-                    TextStorage.measure(textStorage, w, 0);
-                  print_float(width);
-                  print_newline();
-                  print_float(height);
-                  print_newline();
-                  {width, height};
-                },
-              (v, globalId.contents),
-            )
-          | _ =>
-            PureLayout.LayoutSupport.createNode(
-              ~withChildren=[||],
-              ~andStyle=style,
-              (v, globalId.contents),
-            )
+          | None => ()
           };
-
-        (v, node);
-
-      | _ => assert(false)
-      };
-
-    let id = globalId^;
-
-    Hashtbl.add(viewTable, id, view);
-
-    if (id == 1) {
-      layoutRoot.rootNode = {node, id};
+          Text(textView);
+        | Image =>
+          let view = NSImageView.make((0., 0., 200., 200.));
+          switch (props.src) {
+          | Some(src) => NSImageView.setImage(view, src)
+          | None => ()
+          };
+          switch (props.style) {
+          | Some(style) =>
+            switch (style.backgroundColor) {
+            | Some(Rgba(r, g, b, a)) =>
+              NSView.setBackgroundColor(Obj.magic(view), r, g, b, a)
+            | _ => ()
+            };
+            switch (style.borderRadius) {
+            | Some(radius) =>
+              NSView.setBorderRadius(Obj.magic(view), radius)
+            | None => ()
+            };
+          | None => ()
+          };
+          ImageView(view);
+        | Button =>
+          let button = NSButton.make((0., 0., 100., 100.));
+          switch (props.title) {
+          | Some(v) => NSButton.setTitle(button, v)
+          | None => ()
+          };
+          switch (props.onClick) {
+          | Some(c) => NSButton.setCallback(button, c)
+          | None => ()
+          };
+          Button(button);
+        | ScrollView =>
+          let scrollView = NSScrollView.make((0., 0., 0., 0.));
+          switch (props.style) {
+          | Some(style) =>
+            switch (style.backgroundColor) {
+            | Some(Rgba(r, g, b, a)) =>
+              NSView.setBackgroundColor(Obj.magic(scrollView), r, g, b, a)
+            | _ => ()
+            };
+            switch (style.borderRadius) {
+            | Some(radius) =>
+              NSView.setBorderRadius(Obj.magic(scrollView), radius)
+            | None => ()
+            };
+          | None => ()
+          };
+          ScrollView(scrollView);
+        | Window =>
+          let w = NSWindow.windowWithContentRect(0, (0., 0., 800., 550.));
+          switch (props.title) {
+          | Some(t) => NSWindow.setTitle(w, t)
+          | None => ()
+          };
+          NSWindow.center(w);
+          NSWindow.setMinSize(w, (400., 400.));
+          NSWindow.makeKeyAndOrderFront(w);
+          /* NSWindow.windowDidResize(perfomLayout); */
+          Window(w);
+        };
+      v;
+    | _ => assert(false)
     };
-    layoutRoot.orphanNodes = [(id, node), ...layoutRoot.orphanNodes];
-    (view, globalId.contents);
-  };
-  let createTextInstance = _value => {
-    print_endline("Creating text instance");
-    let v = View(NSView.make((0., 0., 100., 100.)));
-    globalId := globalId.contents + 1;
-    let id = globalId^;
-    let node =
-      PureLayout.LayoutSupport.createNode(
-        ~withChildren=[||],
-        ~andStyle=PureLayout.LayoutSupport.defaultStyle,
-        (v, id),
-      );
-    layoutRoot.orphanNodes = [(id, node), ...layoutRoot.orphanNodes];
-    (v, globalId.contents);
-  };
+  let createTextInstance = _value => View(NSView.make((0., 0., 100., 100.)));
 
-  let appendChild = ((parent, parentId), (node, nodeId)) => {
+  let appendChild = (parent, node) =>
     switch (parent, node) {
     | (View(parent), View(node)) => NSView.addSubview(parent, node)
     | (View(parent), Text(node)) =>
@@ -312,53 +169,15 @@ module Host: Reconciler.Spec.HostConfig = {
     | (Window(parent), View(node)) => NSWindow.addSubview(parent, node)
     | _ => ()
     };
-
-    let (_, parentLayoutNode) =
-      List.find(((id, _)) => id == parentId, layoutRoot.orphanNodes);
-    let (_, childLayoutNode) =
-      List.find(((id, _)) => id == nodeId, layoutRoot.orphanNodes);
-
-    appendChildNode(parentLayoutNode, childLayoutNode);
-  };
-  let removeChild = ((parent, parentId), (node, nodeId)) => {
-    switch (parent, node) {
+  let removeChild = (parent, child) =>
+    switch (parent, child) {
     | (_, View(node)) => NSView.removeFromSuperview(node)
     | (_, ScrollView(node)) => NSView.removeFromSuperview(Obj.magic(node))
     | (View(_), Button(node)) =>
       NSView.removeFromSuperview(Obj.magic(node))
     | _ => ()
     };
-
-    let (_, parentLayoutNode) =
-      List.find(((id, _)) => id == parentId, layoutRoot.orphanNodes);
-    let (_, _childLayoutNode) =
-      List.find(((id, _)) => id == nodeId, layoutRoot.orphanNodes);
-
-    Array.length(parentLayoutNode.children) |> string_of_int |> print_endline;
-    parentLayoutNode.children =
-      parentLayoutNode.children
-      |> Array.to_list
-      |> List.filter((node: node) => {
-           let (_, id) = node.context;
-           id != nodeId;
-         })
-      |> Array.of_list;
-    parentLayoutNode.childrenCount = parentLayoutNode.childrenCount - 1;
-    Array.length(parentLayoutNode.children) |> string_of_int |> print_endline;
-  };
-  let commitUpdate = ((node, nodeId), _oldProps, props) => {
-    let (_, n) =
-      List.find(((id, _)) => id == nodeId, layoutRoot.orphanNodes);
-
-    let style =
-      (
-        switch (props.style) {
-        | Some(s) => s
-        | None => Pure.Style.defaultStyle
-        }
-      )
-      |> PureFlex.styleToLayoutStyle;
-    n.style = style;
+  let commitUpdate = (node, _oldProps, props) =>
     switch (node) {
     | Button(button) =>
       switch (props.title) {
@@ -370,22 +189,85 @@ module Host: Reconciler.Spec.HostConfig = {
       | Some(c) => NSButton.setCallback(button, c)
       | None => ()
       };
+    | Text(textView) =>
+      let textStorage = createTextStorage(props);
+      TextView.setTextStorage(textView, textStorage);
 
     | _ => ()
     };
+  let afterCommit = () => print_endline("Everything has been comitted");
+
+  let nullContextView = () => View(NSView.make((0., 0., 0., 0.)));
+
+  let applyLayout = (v, layout: Reconciler_plus_layout.Spec.layoutNode) => {
+    print_endline("Applying layout");
+    let view =
+      switch (v) {
+      | View(v) => v
+      | Text(t) =>
+        TextView.setFrame(t, layout.width);
+        Obj.magic(t);
+      | Button(v) => Obj.magic(v)
+      | ImageView(v) => Obj.magic(v)
+      | Window(w) => w |> NSWindow.getContentView
+      | ScrollView(s) => Obj.magic(s)
+      };
+
+    NSView.setRect(
+      view,
+      (layout.left, layout.top, layout.width, layout.height),
+    );
   };
-  let afterCommit = () => perfomLayout();
+
+  let textMeasure = (v, element) =>
+    switch (v, element) {
+    | (Text(_), Nested(_, props, _)) =>
+      Some(
+        (
+          (w: float) => {
+            let textStorage = createTextStorage(props);
+            let (w, h) = TextStorage.measure(textStorage, w, 0);
+            (w, h);
+          }
+        ),
+      )
+    | _ => None
+    };
+
+  let getDimensions = node => {
+    let view =
+      switch (node) {
+      | Window(w) => NSWindow.getContentView(w)
+      | View(v) => v
+      | ImageView(v) => Obj.magic(v)
+      | Text(t) => Obj.magic(t)
+      | Button(v) => Obj.magic(v)
+      | ScrollView(v) => Obj.magic(v)
+      };
+    let width = NSView.getWidth(view);
+    let height = NSView.getHeight(view);
+    (width, height);
+  };
+
+  let setPerfomLayout = (node, performLayout) =>
+    switch (node) {
+    | Window(w) =>
+      NSWindow.windowDidResize(() => {
+        let v = NSWindow.getContentView(w);
+        let w = NSView.getWidth(v);
+        let h = NSView.getHeight(v);
+        performLayout(w, h);
+      })
+    | _ => ()
+    };
 };
 
-module MacOSReconciler = Reconciler.Make(Host);
-
-layout := perfomLayout;
+module MacOSReconciler = Reconciler_plus_layout.Create(Host);
 
 let render = (pureElement: pureElement) => {
   let app = Lazy.force(NSApplication.app);
-  app#applicationWillFinishLaunching(() => {
-    MacOSReconciler.render(pureElement);
-    perfomLayout();
-  });
+  app#applicationWillFinishLaunching(() =>
+    MacOSReconciler.Reconciler.render(pureElement)
+  );
   app#run;
 };

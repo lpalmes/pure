@@ -1,35 +1,6 @@
 open Pure;
 open Types;
 
-module type HostConfig = {
-  type hostNode;
-  let createInstance: Pure.Types.pureElement => hostNode;
-  let createTextInstance: string => hostNode;
-  let commitUpdate:
-    (hostNode, option(Pure.Types.props), Pure.Types.props) => unit;
-  let appendChild: (hostNode, hostNode) => unit;
-  let removeChild: (hostNode, hostNode) => unit;
-};
-module type Middleware = {
-  type node;
-  let apply: node => unit;
-  let createNode: unit => option(node);
-};
-
-/* module rec HostConfig: {
-     type hostNode;
-     let createInstance: Pure.pureElement => hostNode;
-     let createTextInstance: string => hostNode;
-     let commitUpdate: (hostNode, option(Pure.props), Pure.props) => unit;
-     let appendChild: (hostNode, hostNode) => unit;
-     let removeChild: (hostNode, hostNode) => unit;
-   }
-   and Middleware: {
-     type node;
-     let apply: (HostConfig.hostNode, node) => unit;
-     let createNode: unit => option(node);
-   }   */
-
 module Spec = {
   module type HostConfig = {
     type hostNode;
@@ -39,15 +10,7 @@ module Spec = {
       (hostNode, option(Pure.Types.props), Pure.Types.props) => unit;
     let appendChild: (hostNode, hostNode) => unit;
     let removeChild: (hostNode, hostNode) => unit;
-
     let afterCommit: unit => unit;
-  };
-
-  module type Middleware = {
-    type node;
-    type hostNode;
-    let apply: node => unit;
-    let createNode: hostNode => option(node);
   };
 };
 

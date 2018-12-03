@@ -1,4 +1,3 @@
 (library
   (name Reconciler)
-  (libraries Pure)
-  )
+  (libraries Pure))

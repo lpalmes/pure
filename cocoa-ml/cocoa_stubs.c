@@ -401,7 +401,6 @@ typedef void (^ActionBlock)();
 - (void)callActionBlock:(id)sender
 {
   #pragma unused(sender)
-  NSLog(@"I have been clickd");
   caml_callback(self._ocaml_callback, Val_unit);
 }
 @end
