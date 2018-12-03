@@ -55,100 +55,96 @@ module Host: Reconciler_plus_layout.Spec.HostConfig = {
   let createInstance = element =>
     switch (element) {
     | Nested(primitive, props, _) =>
-      let v =
-        switch (primitive) {
-        | View =>
-          let view = NSView.make((0., 0., 0., 0.));
-          switch (props.style) {
-          | Some(style) =>
-            switch (style.backgroundColor) {
-            | Some(Rgba(r, g, b, a)) =>
-              NSView.setBackgroundColor(view, r, g, b, a)
-            | _ => ()
-            };
-            switch (style.borderRadius) {
-            | Some(radius) => NSView.setBorderRadius(view, radius)
-            | None => ()
-            };
+      switch (primitive) {
+      | View =>
+        let view = NSView.make((0., 0., 0., 0.));
+        switch (props.style) {
+        | Some(style) =>
+          switch (style.backgroundColor) {
+          | Some(Rgba(r, g, b, a)) =>
+            NSView.setBackgroundColor(view, r, g, b, a)
+          | _ => ()
+          };
+          switch (style.borderRadius) {
+          | Some(radius) => NSView.setBorderRadius(view, radius)
           | None => ()
           };
-          View(view);
-        | Text =>
-          let textStorage = createTextStorage(props);
-          let textView = TextView.make((0., 0., 0., 0.));
-          TextView.setTextStorage(textView, textStorage);
-          switch (props.style) {
-          | Some(style) =>
-            switch (style.backgroundColor) {
-            | Some(Rgba(r, g, b, a)) =>
-              NSView.setBackgroundColor(Obj.magic(textView), r, g, b, a)
-            | _ => ()
-            }
-          | None => ()
-          };
-          Text(textView);
-        | Image =>
-          let view = NSImageView.make((0., 0., 200., 200.));
-          switch (props.src) {
-          | Some(src) => NSImageView.setImage(view, src)
-          | None => ()
-          };
-          switch (props.style) {
-          | Some(style) =>
-            switch (style.backgroundColor) {
-            | Some(Rgba(r, g, b, a)) =>
-              NSView.setBackgroundColor(Obj.magic(view), r, g, b, a)
-            | _ => ()
-            };
-            switch (style.borderRadius) {
-            | Some(radius) =>
-              NSView.setBorderRadius(Obj.magic(view), radius)
-            | None => ()
-            };
-          | None => ()
-          };
-          ImageView(view);
-        | Button =>
-          let button = NSButton.make((0., 0., 100., 100.));
-          switch (props.title) {
-          | Some(v) => NSButton.setTitle(button, v)
-          | None => ()
-          };
-          switch (props.onClick) {
-          | Some(c) => NSButton.setCallback(button, c)
-          | None => ()
-          };
-          Button(button);
-        | ScrollView =>
-          let scrollView = NSScrollView.make((0., 0., 0., 0.));
-          switch (props.style) {
-          | Some(style) =>
-            switch (style.backgroundColor) {
-            | Some(Rgba(r, g, b, a)) =>
-              NSView.setBackgroundColor(Obj.magic(scrollView), r, g, b, a)
-            | _ => ()
-            };
-            switch (style.borderRadius) {
-            | Some(radius) =>
-              NSView.setBorderRadius(Obj.magic(scrollView), radius)
-            | None => ()
-            };
-          | None => ()
-          };
-          ScrollView(scrollView);
-        | Window =>
-          let w = NSWindow.windowWithContentRect(0, (0., 0., 800., 550.));
-          switch (props.title) {
-          | Some(t) => NSWindow.setTitle(w, t)
-          | None => ()
-          };
-          NSWindow.center(w);
-          NSWindow.setMinSize(w, (400., 400.));
-          NSWindow.makeKeyAndOrderFront(w);
-          /* NSWindow.windowDidResize(perfomLayout); */
-          Window(w);
+        | None => ()
         };
-      v;
+        View(view);
+      | Text =>
+        let textStorage = createTextStorage(props);
+        let textView = TextView.make((0., 0., 0., 0.));
+        TextView.setTextStorage(textView, textStorage);
+        switch (props.style) {
+        | Some(style) =>
+          switch (style.backgroundColor) {
+          | Some(Rgba(r, g, b, a)) =>
+            NSView.setBackgroundColor(Obj.magic(textView), r, g, b, a)
+          | _ => ()
+          }
+        | None => ()
+        };
+        Text(textView);
+      | Image =>
+        let view = NSImageView.make((0., 0., 200., 200.));
+        switch (props.src) {
+        | Some(src) => NSImageView.setImage(view, src)
+        | None => ()
+        };
+        switch (props.style) {
+        | Some(style) =>
+          switch (style.backgroundColor) {
+          | Some(Rgba(r, g, b, a)) =>
+            NSView.setBackgroundColor(Obj.magic(view), r, g, b, a)
+          | _ => ()
+          };
+          switch (style.borderRadius) {
+          | Some(radius) => NSView.setBorderRadius(Obj.magic(view), radius)
+          | None => ()
+          };
+        | None => ()
+        };
+        ImageView(view);
+      | Button =>
+        let button = NSButton.make((0., 0., 100., 100.));
+        switch (props.title) {
+        | Some(v) => NSButton.setTitle(button, v)
+        | None => ()
+        };
+        switch (props.onClick) {
+        | Some(c) => NSButton.setCallback(button, c)
+        | None => ()
+        };
+        Button(button);
+      | ScrollView =>
+        let scrollView = NSScrollView.make((0., 0., 0., 0.));
+        switch (props.style) {
+        | Some(style) =>
+          switch (style.backgroundColor) {
+          | Some(Rgba(r, g, b, a)) =>
+            NSView.setBackgroundColor(Obj.magic(scrollView), r, g, b, a)
+          | _ => ()
+          };
+          switch (style.borderRadius) {
+          | Some(radius) =>
+            NSView.setBorderRadius(Obj.magic(scrollView), radius)
+          | None => ()
+          };
+        | None => ()
+        };
+        ScrollView(scrollView);
+      | Window =>
+        let w = NSWindow.windowWithContentRect(0, (0., 0., 800., 550.));
+        switch (props.title) {
+        | Some(t) => NSWindow.setTitle(w, t)
+        | None => ()
+        };
+        NSWindow.center(w);
+        NSWindow.setMinSize(w, (400., 400.));
+        NSWindow.makeKeyAndOrderFront(w);
+        Window(w);
+      }
     | _ => assert(false)
     };
   let createTextInstance = _value => View(NSView.make((0., 0., 100., 100.)));
